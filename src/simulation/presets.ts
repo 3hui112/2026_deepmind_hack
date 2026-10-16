@@ -4,27 +4,27 @@ import type { PresetBenchmarkReference } from './types';
 export const BENCHMARK_REFERENCES: Record<PresetId, PresetBenchmarkReference> = {
   A: {
     presetId: 'A',
-    name: 'A. 같은 방향 배치',
+    name: 'A. Same Direction Layout',
     maxIntakeTempC: 35.5,
     racksAbove27C: 6,
     totalRacks: 24,
-    description: '모든 랙이 동일 방향을 향해 전면 랙 배기열이 후면 랙 흡입구로 재유입되는 기본 배치입니다.',
+    description: 'Baseline layout where all racks face the same direction, causing front rack exhaust heat to recirculate into rear rack intakes.',
   },
   B: {
     presetId: 'B',
-    name: 'B. 냉기·열기 통로',
+    name: 'B. Hot/Cold Aisle Layout',
     maxIntakeTempC: 22.1,
     racksAbove27C: 0,
     totalRacks: 24,
-    description: '냉기 통로(Cold Aisle)와 열기 통로(Hot Aisle)가 마주보도록 정렬하여 기류 재순환을 방지한 고효율 배치입니다.',
+    description: 'High-efficiency containment layout with alternating Hot and Cold Aisles facing each other to prevent airflow recirculation.',
   },
   C: {
     presetId: 'C',
-    name: 'C. 냉기·열기 통로 + CRAC 1대 정지',
+    name: 'C. Hot/Cold Aisle + 1 CRAC Trip',
     maxIntakeTempC: 29.6,
     racksAbove27C: 4,
     totalRacks: 24,
-    description: '냉기·열기 통로 구성 중 CRAC 1기가 정지(N+1 비상 상황)되어 국소 풍량이 저하된 시나리오입니다.',
+    description: 'Emergency scenario where 1 CRAC unit fails (N+1 trip) in a Hot/Cold Aisle layout, reducing localized cooling airflow.',
   },
 };
 
@@ -113,7 +113,7 @@ export function createPresetScenario(preset: PresetId): Scenario {
 }
 
 export const PRESET_OPTIONS: Array<{ id: PresetId; label: string; badge: string }> = [
-  { id: 'A', label: 'A. 같은 방향 배치', badge: '최대 35.5°C' },
-  { id: 'B', label: 'B. 냉기·열기 통로', badge: '최대 22.1°C' },
-  { id: 'C', label: 'C. 냉기·열기 통로 + CRAC 1대 정지', badge: '최대 29.6°C' },
+  { id: 'A', label: 'A. Same Direction Layout', badge: 'Max 35.5°C' },
+  { id: 'B', label: 'B. Hot/Cold Aisle Layout', badge: 'Max 22.1°C' },
+  { id: 'C', label: 'C. Hot/Cold Aisle + 1 CRAC Trip', badge: 'Max 29.6°C' },
 ];
