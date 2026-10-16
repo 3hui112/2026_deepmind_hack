@@ -20,7 +20,7 @@ export interface IThermalEngine {
   simulate(scenario: Scenario): SimulationResult;
 }
 
-export const MODEL_DISCLAIMER = '정밀 CFD가 아닌 의사결정용 근사 모델';
+export const MODEL_DISCLAIMER = 'Decision-Support Approximation Model (Not Precision CFD)';
 
 /**
  * Baseline solver that couples room rack positions and CRAC statuses with validated benchmark targets.
