@@ -1,0 +1,6 @@
+{
+  "name": "Data Center Thermal Digital Twin",
+  "description": "서버실 냉각 시뮬레이션 및 의사결정 지원 플랫폼 (프리셋 비교, 2D 열 분포 및 지표 모니터링)",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
