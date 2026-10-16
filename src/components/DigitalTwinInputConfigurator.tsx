@@ -36,19 +36,19 @@ interface DigitalTwinInputConfiguratorProps {
 }
 
 const SAMPLE_PROMPTS = [
-  '20평 서버실에 H100 SXM5 32개, 랙 4개 배치해줘',
-  '15평 공간 B200 64개 랙 8개 자동 구성',
-  '60m2 공간에 A100 HGX 16개 랙 4개 배치',
-  '120m3 서버실 RTX 4090 32개 랙 4개',
+  'Deploy 32x H100 SXM5 GPUs across 4 racks in a 66m² server room',
+  'Auto-configure 64x B200 GPUs across 8 racks in a 50m² room',
+  'Deploy 16x A100 HGX GPUs across 4 racks in a 60m² space',
+  'Configure 32x RTX 4090 GPUs across 4 racks in a 120m³ server room',
 ];
 
 export const DigitalTwinInputConfigurator: React.FC<DigitalTwinInputConfiguratorProps> = ({
   onApplyCustomTwin,
 }) => {
-  const [prompt, setPrompt] = useState<string>('20평 서버실에 H100 SXM5 32개, 랙 4개 배치해줘');
+  const [prompt, setPrompt] = useState<string>('Deploy 32x H100 SXM5 GPUs across 4 racks in a 66m² server room');
   const [params, setParams] = useState<NaturalLanguageConfigParams>(DEFAULT_NL_PARAMS);
   const [interpretation, setInterpretation] = useState<string>(
-    'AI 자연어 해석: 20.0평 (66.1m²) 서버실 공간에 NVIDIA H100 SXM5 4U Pod GPU 32개 (서버 노드 4대, 랙 4개) 자동 구성'
+    'AI Prompt Interpretation: Auto-configuring 32x NVIDIA H100 SXM5 GPUs (4 chassis, 4 racks) in a 66.1m² server room'
   );
   const [activeTab, setActiveTab] = useState<'nlp' | 'manual'>('nlp');
   const [isApplied, setIsApplied] = useState<boolean>(false);
@@ -90,10 +90,10 @@ export const DigitalTwinInputConfigurator: React.FC<DigitalTwinInputConfigurator
     setParams(updated);
 
     const built = buildCustomScenarioFromParams(updated);
-    const unitStr = updated.areaUnit === 'pyeong' ? '평' : updated.areaUnit === 'm2' ? 'm²' : 'm³';
+    const unitStr = updated.areaUnit === 'pyeong' ? ' Pyeong' : updated.areaUnit === 'm2' ? ' m²' : ' m³';
     const spec = GPU_HARDWARE_LIBRARY[updated.gpuSpecId] || GPU_HARDWARE_LIBRARY.H100_SXM5;
     setInterpretation(
-      `규격 입력 해석: ${updated.areaValue}${unitStr} 공간에 ${spec.name} GPU ${updated.gpuCount}개 (랙 ${updated.rackCount}개) 구성`
+      `Specification Interpretation: Configured ${updated.gpuCount}x ${spec.name} GPUs across ${updated.rackCount} racks in ${updated.areaValue}${unitStr} space`
     );
 
     onApplyCustomTwin(built.scenario, built.rackSlotStates, built.scenario.room);
@@ -109,10 +109,10 @@ export const DigitalTwinInputConfigurator: React.FC<DigitalTwinInputConfigurator
           </div>
           <div>
             <h2 className="text-base font-bold text-white flex items-center gap-2">
-              자동 3D 디지털 트윈 &amp; WebGPU 열유동 시각화 생성기
+              Automated 3D Digital Twin &amp; WebGPU Thermal Fluid Generator
             </h2>
             <p className="text-xs text-slate-400">
-              자연어 요청, GPU 규격/개수, 서버실 면적(평/m²/m³)으로 3D 공간과 기류 열 볼륨을 자동으로 재구성합니다.
+              Automatically reconfigures 3D spatial layout and thermal airflow volume using natural language prompts, GPU specs/counts, and room area (Pyeong/m²/m³).
             </p>
           </div>
         </div>
@@ -128,7 +128,7 @@ export const DigitalTwinInputConfigurator: React.FC<DigitalTwinInputConfigurator
             }`}
           >
             <Sparkles className="w-3.5 h-3.5" />
-            AI 자연어 생성
+            AI Natural Language Prompt
           </button>
           <button
             onClick={() => setActiveTab('manual')}
@@ -139,7 +139,7 @@ export const DigitalTwinInputConfigurator: React.FC<DigitalTwinInputConfigurator
             }`}
           >
             <Sliders className="w-3.5 h-3.5" />
-            상세 규격 직접 설정
+            Manual Specifications
           </button>
         </div>
       </div>
@@ -153,13 +153,13 @@ export const DigitalTwinInputConfigurator: React.FC<DigitalTwinInputConfigurator
                 type="text"
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
-                placeholder="예: 20평 서버실에 H100 SXM5 32개, 랙 4개 배치해줘"
+                placeholder="e.g. Deploy 32x H100 SXM5 GPUs across 4 racks in a 66m² server room"
                 className="w-full bg-slate-950 text-slate-100 text-sm border border-slate-700/80 rounded-lg pl-3.5 pr-10 py-2.5 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all placeholder:text-slate-500"
               />
               <button
                 type="submit"
                 className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md bg-sky-600 hover:bg-sky-500 text-white transition-colors"
-                title="시각화 생성"
+                title="Generate Visualization"
               >
                 <Send className="w-4 h-4" />
               </button>
@@ -169,13 +169,13 @@ export const DigitalTwinInputConfigurator: React.FC<DigitalTwinInputConfigurator
               className="px-4 py-2.5 bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-all shadow-md shadow-sky-600/20 shrink-0"
             >
               <Sparkles className="w-4 h-4" />
-              <span>3D 디지털 트윈 생성</span>
+              <span>Generate 3D Twin</span>
             </button>
           </form>
 
           {/* Quick Preset Sample Badges */}
           <div className="flex flex-wrap items-center gap-2 pt-1">
-            <span className="text-xs text-slate-400 font-medium">추천 프롬프트:</span>
+            <span className="text-xs text-slate-400 font-medium">Recommended Prompts:</span>
             {SAMPLE_PROMPTS.map((sample, idx) => (
               <button
                 key={idx}
@@ -197,7 +197,7 @@ export const DigitalTwinInputConfigurator: React.FC<DigitalTwinInputConfigurator
           <div>
             <label className="block text-slate-400 font-medium mb-1 flex items-center gap-1">
               <Cpu className="w-3.5 h-3.5 text-sky-400" />
-              GPU 모델
+              GPU Model
             </label>
             <select
               value={params.gpuSpecId}
@@ -216,7 +216,7 @@ export const DigitalTwinInputConfigurator: React.FC<DigitalTwinInputConfigurator
           <div>
             <label className="block text-slate-400 font-medium mb-1 flex items-center gap-1">
               <Layers className="w-3.5 h-3.5 text-emerald-400" />
-              GPU 총 수량 ({params.gpuCount}개)
+              Total GPU Count ({params.gpuCount})
             </label>
             <input
               type="number"
@@ -235,7 +235,7 @@ export const DigitalTwinInputConfigurator: React.FC<DigitalTwinInputConfigurator
           <div>
             <label className="block text-slate-400 font-medium mb-1 flex items-center gap-1">
               <Layers className="w-3.5 h-3.5 text-amber-400" />
-              서버랙 수량 ({params.rackCount}랙)
+              Server Racks ({params.rackCount} Racks)
             </label>
             <input
               type="number"
@@ -253,7 +253,7 @@ export const DigitalTwinInputConfigurator: React.FC<DigitalTwinInputConfigurator
           <div>
             <label className="block text-slate-400 font-medium mb-1 flex items-center gap-1">
               <Maximize2 className="w-3.5 h-3.5 text-purple-400" />
-              서버실 면적 / 용적
+              Room Area / Volume
             </label>
             <div className="flex gap-1.5">
               <input
@@ -274,7 +274,7 @@ export const DigitalTwinInputConfigurator: React.FC<DigitalTwinInputConfigurator
                 onChange={(e) => handleParamChange('areaUnit', e.target.value as any)}
                 className="w-1/3 bg-slate-900 border border-slate-700 rounded-md px-1 py-1.5 text-slate-200 font-mono text-center focus:outline-none focus:border-sky-500"
               >
-                <option value="pyeong">평</option>
+                <option value="pyeong">Pyeong</option>
                 <option value="m2">m²</option>
                 <option value="m3">m³</option>
               </select>
@@ -292,7 +292,7 @@ export const DigitalTwinInputConfigurator: React.FC<DigitalTwinInputConfigurator
 
         {isApplied && (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 animate-pulse">
-            3D 시각화 적용 완료
+            3D Twin Applied
           </span>
         )}
       </div>
@@ -302,9 +302,9 @@ export const DigitalTwinInputConfigurator: React.FC<DigitalTwinInputConfigurator
         <div className="bg-slate-950/70 p-2.5 rounded-lg border border-slate-800/60 flex items-center gap-2">
           <Maximize2 className="w-4 h-4 text-sky-400 shrink-0" />
           <div>
-            <div className="text-slate-400 text-[10px]">공간 규격</div>
+            <div className="text-slate-400 text-[10px]">Room Dimensions</div>
             <div className="font-bold text-slate-200">
-              {currentBuild.summary.dimensionsStr} ({currentBuild.summary.areaPyeong}평)
+              {currentBuild.summary.dimensionsStr} ({currentBuild.summary.areaPyeong} Pyeong)
             </div>
           </div>
         </div>
@@ -312,9 +312,9 @@ export const DigitalTwinInputConfigurator: React.FC<DigitalTwinInputConfigurator
         <div className="bg-slate-950/70 p-2.5 rounded-lg border border-slate-800/60 flex items-center gap-2">
           <Cpu className="w-4 h-4 text-emerald-400 shrink-0" />
           <div>
-            <div className="text-slate-400 text-[10px]">서버 섀시 노드</div>
+            <div className="text-slate-400 text-[10px]">Chassis Nodes</div>
             <div className="font-bold text-slate-200">
-              총 {currentBuild.summary.totalChassisCount}대 ({params.rackCount}개 랙 분배)
+              {currentBuild.summary.totalChassisCount} units ({params.rackCount} racks)
             </div>
           </div>
         </div>
@@ -322,7 +322,7 @@ export const DigitalTwinInputConfigurator: React.FC<DigitalTwinInputConfigurator
         <div className="bg-slate-950/70 p-2.5 rounded-lg border border-slate-800/60 flex items-center gap-2">
           <Zap className="w-4 h-4 text-amber-400 shrink-0" />
           <div>
-            <div className="text-slate-400 text-[10px]">총 발열 및 수용 전력</div>
+            <div className="text-slate-400 text-[10px]">Total Power &amp; Heat</div>
             <div className="font-bold text-amber-300">
               {currentBuild.summary.totalPowerKw} kW
             </div>
@@ -332,7 +332,7 @@ export const DigitalTwinInputConfigurator: React.FC<DigitalTwinInputConfigurator
         <div className="bg-slate-950/70 p-2.5 rounded-lg border border-slate-800/60 flex items-center gap-2">
           <Wind className="w-4 h-4 text-cyan-400 shrink-0" />
           <div>
-            <div className="text-slate-400 text-[10px]">요구 CRAC 풍량</div>
+            <div className="text-slate-400 text-[10px]">Required CRAC Airflow</div>
             <div className="font-bold text-cyan-300">
               {currentBuild.summary.totalCFM} CFM
             </div>

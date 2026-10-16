@@ -17,22 +17,22 @@ export const ThermalLegend: React.FC<ThermalLegendProps> = ({
       <div className="flex items-center justify-between gap-2 pb-2 mb-2 border-b border-slate-800/80">
         <span className="font-semibold text-slate-200 flex items-center gap-1.5 text-[11px] sm:text-xs">
           <Thermometer className="w-3.5 h-3.5 text-sky-400" />
-          열지도 및 흡입 온도 범례
+          Thermal Heatmap &amp; Intake Temp Legend
         </span>
         <span className="text-[10px] text-amber-400 font-mono flex items-center gap-1 bg-amber-950/60 px-2 py-0.5 rounded border border-amber-800/50">
           <AlertTriangle className="w-3 h-3 text-amber-400" />
-          27°C 권장 상한
+          27°C Recommended Limit
         </span>
       </div>
 
       {/* Color Swatch Bar */}
       <div className="relative mb-2">
         <div className="h-3 rounded flex overflow-hidden shadow-inner">
-          <div className="flex-1 bg-[#38bdf8]" title="< 22°C: 파랑 (최적)" />
-          <div className="flex-1 bg-[#34d399]" title="22~25°C: 초록 (양호)" />
-          <div className="flex-1 bg-[#facc15]" title="25~27°C: 노랑 (주의)" />
-          <div className="flex-1 bg-[#fb923c]" title="27~30°C: 주황 (경고 - 상한 초과)" />
-          <div className="flex-1 bg-[#ef4444]" title=">= 30°C: 빨강 (위험 핫스팟)" />
+          <div className="flex-1 bg-[#38bdf8]" title="< 22°C: Blue (Optimal)" />
+          <div className="flex-1 bg-[#34d399]" title="22~25°C: Green (Good)" />
+          <div className="flex-1 bg-[#facc15]" title="25~27°C: Yellow (Caution)" />
+          <div className="flex-1 bg-[#fb923c]" title="27~30°C: Orange (Warning - Exceeds Limit)" />
+          <div className="flex-1 bg-[#ef4444]" title=">= 30°C: Red (Hazard Hotspot)" />
         </div>
 
         {/* 27°C Limit Marker Indicator */}
@@ -51,27 +51,27 @@ export const ThermalLegend: React.FC<ThermalLegendProps> = ({
         <div className="flex flex-col items-center">
           <span className="w-2 h-2 rounded-full bg-[#38bdf8] mb-0.5 inline-block" />
           <span>&lt; 22°C</span>
-          {!compact && <span className="text-[9px] text-slate-500">파랑 (최적)</span>}
+          {!compact && <span className="text-[9px] text-slate-500">Blue (Optimal)</span>}
         </div>
         <div className="flex flex-col items-center">
           <span className="w-2 h-2 rounded-full bg-[#34d399] mb-0.5 inline-block" />
           <span>22~25°C</span>
-          {!compact && <span className="text-[9px] text-slate-500">초록 (양호)</span>}
+          {!compact && <span className="text-[9px] text-slate-500">Green (Good)</span>}
         </div>
         <div className="flex flex-col items-center">
           <span className="w-2 h-2 rounded-full bg-[#facc15] mb-0.5 inline-block" />
           <span>25~27°C</span>
-          {!compact && <span className="text-[9px] text-slate-500">노랑 (주의)</span>}
+          {!compact && <span className="text-[9px] text-slate-500">Yellow (Caution)</span>}
         </div>
         <div className="flex flex-col items-center">
           <span className="w-2 h-2 rounded-full bg-[#fb923c] mb-0.5 inline-block" />
           <span className="font-bold text-amber-300">27~30°C</span>
-          {!compact && <span className="text-[9px] text-amber-400/80">주황 (초과)</span>}
+          {!compact && <span className="text-[9px] text-amber-400/80">Orange (Over Limit)</span>}
         </div>
         <div className="flex flex-col items-center">
           <span className="w-2 h-2 rounded-full bg-[#ef4444] mb-0.5 inline-block" />
           <span className="font-bold text-rose-400">&ge; 30°C</span>
-          {!compact && <span className="text-[9px] text-rose-400/80">빨강 (위험)</span>}
+          {!compact && <span className="text-[9px] text-rose-400/80">Red (Hazard)</span>}
         </div>
       </div>
     </div>

@@ -90,13 +90,13 @@ export const ArgonAnalysisPanel: React.FC<ArgonAnalysisPanelProps> = ({
       const data = await response.json();
 
       if (!response.ok || !data.success) {
-        throw new Error(data.error || 'Argon 분석 요청 처리에 실패했습니다.');
+        throw new Error(data.error || 'Failed to process Argon analysis request.');
       }
 
       setResult(data.data as ArgonAnalysisResult);
     } catch (err: any) {
       console.error('[Argon Panel]', err);
-      setError(err?.message || 'Gemini 4 Argon 분석 중 오류가 발생했습니다.');
+      setError(err?.message || 'An error occurred during Gemini 4 Argon analysis.');
     } finally {
       setLoading(false);
     }
@@ -106,25 +106,25 @@ export const ArgonAnalysisPanel: React.FC<ArgonAnalysisPanelProps> = ({
     switch (decision) {
       case 'recommend':
         return {
-          label: '승인 추천 (Recommend)',
+          label: 'Approved Recommendation (Recommend)',
           bg: 'bg-emerald-950/80 text-emerald-300 border-emerald-700/80',
           icon: <CheckCircle2 className="w-4 h-4 text-emerald-400" />,
         };
       case 'conditional':
         return {
-          label: '조건부 승인 (Conditional - 계측 필수)',
+          label: 'Conditional Approval (Conditional - Measurement Required)',
           bg: 'bg-amber-950/80 text-amber-300 border-amber-700/80',
           icon: <AlertTriangle className="w-4 h-4 text-amber-400" />,
         };
       case 'reject':
         return {
-          label: '기각 (Reject - 위험 감지)',
+          label: 'Rejected (Reject - Risk Detected)',
           bg: 'bg-rose-950/80 text-rose-300 border-rose-700/80',
           icon: <XCircle className="w-4 h-4 text-rose-400" />,
         };
       case 'keep_current':
         return {
-          label: '현재 배치 유지 (Keep Current)',
+          label: 'Keep Current Placement (Keep Current)',
           bg: 'bg-sky-950/80 text-sky-300 border-sky-700/80',
           icon: <Info className="w-4 h-4 text-sky-400" />,
         };
@@ -142,14 +142,14 @@ export const ArgonAnalysisPanel: React.FC<ArgonAnalysisPanelProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-base font-bold text-slate-100 flex items-center gap-2">
-                Gemini 4 Argon 최적화 분석 엔진
+                Gemini 4 Argon Thermal Optimization Engine
               </h3>
               <span className="text-[10px] font-mono font-semibold bg-indigo-950 text-indigo-300 border border-indigo-800/80 px-2 py-0.5 rounded-full">
-                서버 측 연산 활성
+                Server-Side AI Active
               </span>
             </div>
             <p className="text-xs text-slate-400">
-              서버실 공조·랙 발열 패턴 심층 추론 및 안전 의사결정 지원
+              Deep reasoning on airflow &amp; rack heat patterns with safety decision support
             </p>
           </div>
         </div>
@@ -166,12 +166,12 @@ export const ArgonAnalysisPanel: React.FC<ArgonAnalysisPanelProps> = ({
             {loading && !isTestMode ? (
               <>
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                <span>Argon 심층 분석 중...</span>
+                <span>Analyzing with Argon...</span>
               </>
             ) : (
               <>
                 <Sparkles className="w-3.5 h-3.5 text-indigo-200" />
-                <span>Argon에게 현재 상황 분석 요청</span>
+                <span>Request Argon Thermal Analysis</span>
               </>
             )}
           </button>
@@ -182,17 +182,17 @@ export const ArgonAnalysisPanel: React.FC<ArgonAnalysisPanelProps> = ({
             disabled={loading}
             onClick={() => handleRequestAnalysis(true)}
             className="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-slate-800 hover:bg-slate-700 active:bg-slate-900 text-slate-300 border border-slate-700 flex items-center gap-1.5 transition-colors disabled:opacity-50"
-            title="테스트용 모순 사례(평소/폭염 2.3°C 악화, 0/9 개선)를 전송하여 Argon이 일반 추천을 기각하는지 검증합니다."
+            title="Simulate contradictory test case (+2.3°C heatwave degradation, 0/9 sensitivity improvement) to verify Argon rejection behavior."
           >
             {loading && isTestMode ? (
               <>
                 <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-400" />
-                <span>모순 검증 중...</span>
+                <span>Verifying Contradiction...</span>
               </>
             ) : (
               <>
                 <FlaskConical className="w-3.5 h-3.5 text-amber-400" />
-                <span>모순 사례 검증</span>
+                <span>Verify Contradictory Case</span>
               </>
             )}
           </button>
@@ -202,31 +202,31 @@ export const ArgonAnalysisPanel: React.FC<ArgonAnalysisPanelProps> = ({
       {/* Input Summary Capsule */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-slate-950/70 p-3 rounded-lg border border-slate-800/80 text-xs">
         <div>
-          <span className="text-slate-500">분석 시나리오:</span>{' '}
+          <span className="text-slate-500">Scenario:</span>{' '}
           <span className="font-semibold text-slate-200">
             {scenario.selectedPreset} ({currentPresetName})
           </span>
         </div>
         <div>
-          <span className="text-slate-500">최대 흡입 / 위험 랙:</span>{' '}
+          <span className="text-slate-500">Max Intake / At Risk:</span>{' '}
           <span
             className={`font-mono font-semibold ${
               simulationResult.maxIntakeTempC > 27 ? 'text-rose-400' : 'text-emerald-400'
             }`}
           >
-            {simulationResult.maxIntakeTempC.toFixed(1)}°C ({simulationResult.racksAbove27C}대 초과)
+            {simulationResult.maxIntakeTempC.toFixed(1)}°C ({simulationResult.racksAbove27C} over limit)
           </span>
         </div>
         <div>
-          <span className="text-slate-500">공조기 상태:</span>{' '}
+          <span className="text-slate-500">CRAC Status:</span>{' '}
           <span className="font-semibold text-slate-200">
-            {activeCracCount}/{scenario.cracs.length}대 가동
+            {activeCracCount}/{scenario.cracs.length} Active
           </span>
         </div>
         <div>
-          <span className="text-slate-500">허용 랙 이동수:</span>{' '}
+          <span className="text-slate-500">Max Moves:</span>{' '}
           <span className="font-mono font-bold text-sky-400">
-            최대 {scenario.maxRackMoves}대
+            Up to {scenario.maxRackMoves} racks
           </span>
         </div>
       </div>
@@ -237,7 +237,7 @@ export const ArgonAnalysisPanel: React.FC<ArgonAnalysisPanelProps> = ({
           <div className="flex items-start gap-2">
             <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
             <div className="flex-1">
-              <p className="font-semibold text-rose-300">Argon 분석 오류 발생</p>
+              <p className="font-semibold text-rose-300">Argon Analysis Error</p>
               <p className="text-rose-200/90 mt-0.5">{error}</p>
             </div>
             <button
@@ -246,11 +246,11 @@ export const ArgonAnalysisPanel: React.FC<ArgonAnalysisPanelProps> = ({
               className="px-2.5 py-1 rounded bg-rose-900/80 hover:bg-rose-800 text-white font-medium flex items-center gap-1 shrink-0"
             >
               <RotateCcw className="w-3 h-3" />
-              재시도
+              Retry
             </button>
           </div>
           <p className="text-[11px] text-slate-400">
-            * 2D 및 3D 시뮬레이터는 중단 없이 정상 작동 중입니다.
+            * 2D and 3D thermal simulators remain fully operational without interruption.
           </p>
         </div>
       )}
@@ -262,11 +262,11 @@ export const ArgonAnalysisPanel: React.FC<ArgonAnalysisPanelProps> = ({
           <div className="space-y-1">
             <p className="text-sm font-semibold text-slate-200">
               {isTestMode
-                ? '모순 테스트 사례를 바탕으로 Argon 안전 평가를 수행 중입니다...'
-                : '서버 측 Gemini 4 Argon 모델이 열 지표 및 위험 랙을 심층 추론 중입니다...'}
+                ? 'Evaluating Argon safety principles against contradictory test case...'
+                : 'Server-side Gemini 4 Argon model is conducting deep reasoning on thermal metrics...'}
             </p>
             <p className="text-xs text-slate-400">
-              보수적 안전 원칙 적용 (1°C 이상 악화 금지, 민감도 개선 검증, CoT 마스킹)
+              Conservative safety principles enforced (&le;1°C degradation limit, sensitivity verification, CoT masking)
             </p>
           </div>
         </div>
@@ -280,11 +280,11 @@ export const ArgonAnalysisPanel: React.FC<ArgonAnalysisPanelProps> = ({
             <div className="flex items-center gap-2">
               <FileCheck className="w-5 h-5 text-indigo-400" />
               <span className="font-bold text-slate-100 text-sm">
-                Argon 의사결정 보고서
+                Argon Decision Report
               </span>
               {isTestMode && (
                 <span className="text-[10px] font-mono font-bold bg-amber-950 text-amber-300 border border-amber-800 px-2 py-0.5 rounded">
-                  모순 테스트 검증 결과
+                  Contradictory Test Result
                 </span>
               )}
             </div>
@@ -308,10 +308,9 @@ export const ArgonAnalysisPanel: React.FC<ArgonAnalysisPanelProps> = ({
             <div className="bg-amber-950/30 border border-amber-800/60 rounded-lg p-3 text-xs text-amber-200 flex items-start gap-2">
               <ShieldCheck className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
               <div>
-                <p className="font-semibold">안전 원칙 검증 통과 (일반 추천 승인 불가)</p>
+                <p className="font-semibold font-mono">Safety Verification Passed (General Recommendation Rejected)</p>
                 <p className="text-slate-300 mt-0.5">
-                  평소/폭염 2.3°C 악화 및 0/9 민감도 미개선 조건에 대해 Argon이 일반 추천(recommend)을 승인하지 않고{' '}
-                  <span className="font-bold text-amber-300 font-mono">[{result.decision}]</span> 결정을 내렸습니다.
+                  Argon rejected general recommendation under +2.3°C degradation and 0/9 sensitivity condition, issuing decision <span className="font-bold text-amber-300 font-mono">[{result.decision}]</span>.
                 </p>
               </div>
             </div>
@@ -322,7 +321,7 @@ export const ArgonAnalysisPanel: React.FC<ArgonAnalysisPanelProps> = ({
             <div className="bg-slate-900/80 p-3.5 rounded-lg border border-slate-800 space-y-1.5">
               <div className="flex items-center gap-1.5 font-semibold text-sky-300">
                 <Info className="w-4 h-4" />
-                <span>현황 관찰 요약 (Observation)</span>
+                <span>Observation Summary</span>
               </div>
               <p className="text-slate-300 leading-relaxed">{result.observation}</p>
             </div>
@@ -330,7 +329,7 @@ export const ArgonAnalysisPanel: React.FC<ArgonAnalysisPanelProps> = ({
             <div className="bg-slate-900/80 p-3.5 rounded-lg border border-slate-800 space-y-1.5">
               <div className="flex items-center gap-1.5 font-semibold text-emerald-300">
                 <CheckCircle2 className="w-4 h-4" />
-                <span>권고 조치 사항 (Recommended Action)</span>
+                <span>Recommended Action</span>
               </div>
               <p className="text-slate-300 leading-relaxed">{result.recommendedAction}</p>
             </div>
@@ -341,7 +340,7 @@ export const ArgonAnalysisPanel: React.FC<ArgonAnalysisPanelProps> = ({
             <div className="bg-slate-900/80 p-3.5 rounded-lg border border-slate-800 space-y-1.5">
               <div className="flex items-center gap-1.5 font-semibold text-amber-300">
                 <Scale className="w-4 h-4" />
-                <span>트레이드오프 및 리스크 (Trade-off)</span>
+                <span>Trade-off &amp; Risk Analysis</span>
               </div>
               <p className="text-slate-300 leading-relaxed">{result.tradeoff}</p>
             </div>
@@ -349,7 +348,7 @@ export const ArgonAnalysisPanel: React.FC<ArgonAnalysisPanelProps> = ({
             <div className="bg-slate-900/80 p-3.5 rounded-lg border border-slate-800 space-y-1.5">
               <div className="flex items-center gap-1.5 font-semibold text-purple-300">
                 <HelpCircle className="w-4 h-4" />
-                <span>모델 불확실성 (Uncertainty)</span>
+                <span>Model Uncertainty</span>
               </div>
               <p className="text-slate-300 leading-relaxed">{result.uncertainty}</p>
             </div>
@@ -359,7 +358,7 @@ export const ArgonAnalysisPanel: React.FC<ArgonAnalysisPanelProps> = ({
           <div className="bg-slate-900/90 p-3 rounded-lg border border-indigo-900/50 text-xs space-y-1">
             <div className="font-semibold text-indigo-300 flex items-center gap-1.5">
               <ShieldCheck className="w-4 h-4 text-indigo-400" />
-              <span>실제 이동 전 필수 현장 계측 항목 (Required Measurement)</span>
+              <span>Required On-Site Physical Measurement</span>
             </div>
             <p className="text-slate-300">{result.requiredMeasurement}</p>
           </div>
@@ -368,15 +367,15 @@ export const ArgonAnalysisPanel: React.FC<ArgonAnalysisPanelProps> = ({
           {result.evidence && result.evidence.length > 0 && (
             <div className="space-y-1.5">
               <span className="text-xs font-semibold text-slate-300">
-                판단 근거 데이터 (Evidence)
+                Evidence Data
               </span>
               <div className="overflow-x-auto rounded-lg border border-slate-800">
                 <table className="w-full text-xs text-left">
                   <thead className="bg-slate-900 text-slate-400 border-b border-slate-800">
                     <tr>
-                      <th className="py-2 px-3 font-medium">상황 / 시나리오</th>
-                      <th className="py-2 px-3 font-medium">평가 지표</th>
-                      <th className="py-2 px-3 font-medium">측정 수치 및 상태</th>
+                      <th className="py-2 px-3 font-medium">Scenario / Case</th>
+                      <th className="py-2 px-3 font-medium">Metric</th>
+                      <th className="py-2 px-3 font-medium">Value &amp; Status</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/80 bg-slate-950/50">
@@ -399,10 +398,10 @@ export const ArgonAnalysisPanel: React.FC<ArgonAnalysisPanelProps> = ({
           <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
             <span className="flex items-center gap-1">
               <Info className="w-3.5 h-3.5 text-sky-400" />
-              합성 시뮬레이션 기반 추론이며, 최종 랙 이동은 설비 관리자의 현장 승인이 필요합니다.
+              Synthetic simulation-based reasoning. Physical rack relocation requires facility manager approval.
             </span>
             <span className="font-mono text-slate-500">
-              CoT 미노출 / 구조화 출력 완료
+              CoT Masked / Structured Output Complete
             </span>
           </div>
         </div>

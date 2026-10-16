@@ -84,7 +84,7 @@ export const Simulator2D: React.FC<Simulator2DProps> = ({
   const handlePointerUpCanvas = () => {
     if (draggedRackId && dragPos) {
       onUpdateRackPosition?.(draggedRackId, [dragPos.x, 0, dragPos.z]);
-      setToastMessage(`[${draggedRackId}] 도면 위치 좌표 [${dragPos.x}m, ${dragPos.z}m](으)로 이동 완료`);
+      setToastMessage(`[${draggedRackId}] moved to blueprint position [${dragPos.x}m, ${dragPos.z}m]`);
       setTimeout(() => setToastMessage(null), 3000);
     }
     setDraggingRackId(null);
@@ -100,16 +100,16 @@ export const Simulator2D: React.FC<Simulator2DProps> = ({
         <div>
           <h2 className="text-base font-semibold text-slate-100 flex items-center gap-2">
             <Wind className="w-5 h-5 text-sky-400" />
-            2D 도면 기반 서버랙 마우스 이동 &amp; 기류 열유동 시뮬레이션
+            2D Blueprint Interactive Rack Placement &amp; Thermal Flow Simulation
           </h2>
           <p className="text-xs text-slate-400 mt-0.5">
-            룸 크기: {room.widthM}m × {room.depthM}m | CAD 도면 오버레이 상에서 서버랙을 클릭·드래그하여 자유롭게 이동할 수 있습니다.
+            Room dimensions: {room.widthM}m × {room.depthM}m | Click and drag server racks across the CAD blueprint overlay to reposition.
           </p>
         </div>
 
         {/* Legend */}
         <div className="flex items-center gap-2 text-xs bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800 text-slate-300">
-          <span className="text-slate-400 font-medium">흡입 온도:</span>
+          <span className="text-slate-400 font-medium">Intake Temp:</span>
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-sm bg-[#38bdf8] inline-block" />
             <span className="text-[11px]">&lt;22°C</span>
@@ -190,7 +190,7 @@ export const Simulator2D: React.FC<Simulator2DProps> = ({
           {scenario.selectedPreset === 'A' ? (
             <g opacity="0.4">
               <text x={svgWidth / 2} y={svgHeight * 0.5} fill="#94a3b8" fontSize="13" textAnchor="middle" fontStyle="italic">
-                (동일 방향 단일 기류 흐름 - 후면 배기 혼입 구역)
+                (Single directional airflow - Hot exhaust recirculation zone)
               </text>
             </g>
           ) : (
@@ -216,7 +216,7 @@ export const Simulator2D: React.FC<Simulator2DProps> = ({
                 textAnchor="middle"
                 letterSpacing="1.5"
               >
-                ❄ COLD AISLE (냉기 통로)
+                ❄ COLD AISLE
               </text>
             </g>
           )}
@@ -262,7 +262,7 @@ export const Simulator2D: React.FC<Simulator2DProps> = ({
                   fontFamily="monospace"
                   textAnchor="middle"
                 >
-                  {crac.active ? `ON (${crac.supplyTempC}°C)` : 'OFF (정지)'}
+                  {crac.active ? `ON (${crac.supplyTempC}°C)` : 'OFF (Stopped)'}
                 </text>
 
                 {/* Airflow direction arrow */}
@@ -416,7 +416,7 @@ export const Simulator2D: React.FC<Simulator2DProps> = ({
 
             <div className="space-y-1 font-mono text-slate-300 text-[11px]">
               <div className="flex justify-between">
-                <span className="text-slate-400">흡입구 온도:</span>
+                <span className="text-slate-400">Intake Temp:</span>
                 <span
                   className={`font-bold ${
                     selectedRack.intakeTempC > 27.0 ? 'text-rose-400' : 'text-emerald-400'
@@ -426,11 +426,11 @@ export const Simulator2D: React.FC<Simulator2DProps> = ({
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">발열 부하:</span>
+                <span className="text-slate-400">Heat Load:</span>
                 <span>{selectedRack.heatKw.toFixed(1)} kW</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">도면 실시간 좌표:</span>
+                <span className="text-slate-400">Blueprint Coordinates:</span>
                 <span className="text-amber-300 font-bold">
                   [{dragPos && draggedRackId === selectedRack.id ? dragPos.x : selectedRack.position[0]}m,{' '}
                   {dragPos && draggedRackId === selectedRack.id ? dragPos.z : selectedRack.position[2]}m]
@@ -447,7 +447,7 @@ export const Simulator2D: React.FC<Simulator2DProps> = ({
                   className="flex-1 py-1.5 bg-slate-800 hover:bg-slate-700 text-sky-300 text-[11px] font-semibold rounded-md border border-slate-700 flex items-center justify-center gap-1 transition-all"
                 >
                   <RotateCw className="w-3.5 h-3.5" />
-                  방향 회전
+                  Rotate 180°
                 </button>
               )}
             </div>
@@ -459,7 +459,7 @@ export const Simulator2D: React.FC<Simulator2DProps> = ({
       <div className="flex items-center gap-2 text-xs text-slate-400 bg-slate-950/60 p-2.5 rounded-lg border border-slate-800/80">
         <Info className="w-4 h-4 text-sky-400 shrink-0" />
         <span>
-          도면 상의 서버랙을 <b>마우스로 드래그 앤 드롭</b>하여 다른 좌표 위치로 자유롭게 이동하세요. 위치 이동 시 WebGPU 기류 및 열유동 시뮬레이션이 즉시 실시간 재계산됩니다.
+          Drag and drop server racks on the floorplan to freely reposition them. WebGPU thermal airflow simulations update instantly in real time on move.
         </span>
       </div>
     </div>

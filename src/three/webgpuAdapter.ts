@@ -101,7 +101,7 @@ export async function probeWebGPUAdapter(forceRefresh = false): Promise<WebGPUAd
   }
 
   if (typeof navigator === 'undefined' || !('gpu' in navigator) || !navigator.gpu) {
-    const reason = '현재 브라우저/환경에서 navigator.gpu API가 비활성화되어 있습니다.';
+    const reason = 'navigator.gpu API is disabled in current browser/environment.';
     const unavailable: WebGPUAdapterDiagnostics = {
       available: false,
       vendor: 'Unavailable',
@@ -132,7 +132,7 @@ export async function probeWebGPUAdapter(forceRefresh = false): Promise<WebGPUAd
     });
 
     if (!adapter) {
-      const reason = 'navigator.gpu.requestAdapter()가 null을 반환했습니다.';
+      const reason = 'navigator.gpu.requestAdapter() returned null.';
       const noAdapter: WebGPUAdapterDiagnostics = {
         available: false,
         vendor: 'None',
@@ -214,7 +214,7 @@ export async function probeWebGPUAdapter(forceRefresh = false): Promise<WebGPUAd
     cachedDiagnostics = diagnostics;
     return diagnostics;
   } catch (err: any) {
-    const reason = err?.message || 'WebGPU 어댑터 요청 중 예외 발생';
+    const reason = err?.message || 'Exception occurred while requesting WebGPU adapter.';
     const failed: WebGPUAdapterDiagnostics = {
       available: false,
       vendor: 'Error',

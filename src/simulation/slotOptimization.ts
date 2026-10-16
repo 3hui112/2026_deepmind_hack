@@ -241,22 +241,22 @@ export function analyzeAndOptimizeSlots(
     if (bestDest !== null) {
       const dest: { rackId: string; startU: number; expectedTempC: number } = bestDest;
       const tempDelta = dest.expectedTempC - srcTemp;
-      const locationLabel = dest.rackId === srcRackId ? `${dest.rackId} 하단` : dest.rackId;
+      const locationLabel = dest.rackId === srcRackId ? `${dest.rackId} lower` : dest.rackId;
       recommendations.push({
         id: 'REC-MOVE-01',
         type: 'MOVE_SLOT',
-        title: `재배치 권고: ${server.name} (${srcRackId} U${server.startU} ➔ ${locationLabel} U${dest.startU})`,
+        title: `Relocation Advisory: ${server.name} (${srcRackId} U${server.startU} ➔ ${locationLabel} U${dest.startU})`,
         targetChassisId: server.id,
         sourceRackId: srcRackId,
         sourceStartU: server.startU,
         destRackId: dest.rackId,
         destStartU: dest.startU,
         expectedTempDeltaC: Number(tempDelta.toFixed(1)),
-        rationale: `${srcRackId} 상단(U${server.startU})의 열기둥 재순환으로 인해 서버 흡입 온도가 ${srcTemp.toFixed(
+        rationale: `Server intake temperature rose to ${srcTemp.toFixed(
           1
-        )}°C까지 상승했습니다. 여유 수용 공간과 냉기 공급이 양호한 ${locationLabel} U${
+        )}°C due to hot chimney recirculation at upper ${srcRackId} (U${server.startU}). Moving to slot U${
           dest.startU
-        } 슬롯으로 이동 시 약 ${Math.abs(tempDelta).toFixed(1)}°C 강하 효과가 예상됩니다.`,
+        } in ${locationLabel} (good airflow and spare capacity) is expected to lower temperature by approx. ${Math.abs(tempDelta).toFixed(1)}°C.`,
       });
     }
   }
@@ -287,13 +287,13 @@ export function analyzeAndOptimizeSlots(
     recommendations.push({
       id: 'REC-EXPAND-01',
       type: 'EXPANSION',
-      title: '신규 GPU 서버 증설 최적 슬롯 제안',
+      title: 'Optimal Expansion Slot Proposal for New GPU Server',
       destRackId: exp.rackId,
       destStartU: exp.startU,
       expectedTempDeltaC: 0.0,
-      rationale: `신규 4U GPU 서버(H100/B200) 증설 시, ${exp.rackId} U${exp.startU}–U${
+      rationale: `For adding a new 4U GPU server (H100/B200), slot ${exp.rackId} U${exp.startU}–U${
         exp.startU + 3
-      } 슬롯이 PDU 차단기 안전 여유율(80% 이내)과 최적 하부 냉기 흐름을 가장 잘 충족합니다. (예상 흡입 온도: ${exp.expectedTempC.toFixed(
+      } best satisfies PDU breaker safety headroom (within 80%) and optimal lower cold airflow. (Est. intake temp: ${exp.expectedTempC.toFixed(
         1
       )}°C)`,
     });
@@ -317,13 +317,13 @@ export function analyzeAndOptimizeSlots(
     recommendations.push({
       id: 'REC-EMERGENCY-01',
       type: 'EMERGENCY_SHED',
-      title: '비상 부하 차단 (Slurm & GPU Power Cap)',
+      title: 'Emergency Load Shedding (Slurm & GPU Power Cap)',
       destRackId: 'ALL_RACKS',
       destStartU: 1,
       expectedTempDeltaC: -3.5,
-      rationale: `항온항습기(CRAC) 정지 또는 열 폭주 위험 감지 시, 즉시 약 ${emergencyCutKw.toFixed(
+      rationale: `Upon CRAC trip or thermal runaway risk, approx. ${emergencyCutKw.toFixed(
         1
-      )} kW의 발열을 즉시 차단해야 합니다. 자동화 명령으로 Slurm 학습 작업 일시 중지 및 GPU 전력 제한(Power Capping)을 실행하세요.`,
+      )} kW heat load must be shed immediately. Execute automated commands to pause Slurm GPU jobs and cap GPU power limits.`,
       slurmCommand: slurmCmd,
       gpuPowerCapCommand: gpuCmd,
     });

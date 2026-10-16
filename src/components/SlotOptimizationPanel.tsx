@@ -43,10 +43,10 @@ export const SlotOptimizationPanel: React.FC<SlotOptimizationPanelProps> = ({
           </div>
           <div>
             <h2 className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
-              Gemini 4 Argon U-슬롯 권고 &amp; 비상 제어 엔진
+              Gemini 4 Argon U-Slot Recommendation &amp; Emergency Control Engine
             </h2>
             <p className="text-xs text-slate-400">
-              수직 열기둥 대류 물리 및 PDU 부하 기반 AI 슬롯 재배치 및 Slurm/PowerCap 비상 제어
+              AI slot optimization &amp; Slurm/PowerCap emergency control based on vertical thermal chimney convection &amp; PDU load
             </p>
           </div>
         </div>
@@ -54,7 +54,7 @@ export const SlotOptimizationPanel: React.FC<SlotOptimizationPanelProps> = ({
         {emergencyCutKw > 0 && (
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-bold bg-rose-950 text-rose-300 border border-rose-800 animate-pulse">
             <AlertOctagon className="w-3.5 h-3.5 text-rose-400" />
-            비상 차단 필요 부하: {emergencyCutKw} kW
+            Emergency Shedding Required: {emergencyCutKw} kW
           </span>
         )}
       </div>
@@ -63,7 +63,7 @@ export const SlotOptimizationPanel: React.FC<SlotOptimizationPanelProps> = ({
       <div className="space-y-3">
         {recommendations.length === 0 ? (
           <div className="bg-slate-950 p-4 rounded-lg border border-slate-800 text-xs text-slate-400 text-center">
-            현재 모든 슬롯 배치가 열적으로 안정 상태이며 권고 사항이 없습니다.
+            All slot placement configurations are thermally stable. No recommendations needed.
           </div>
         ) : (
           recommendations.map((rec) => (
@@ -83,7 +83,7 @@ export const SlotOptimizationPanel: React.FC<SlotOptimizationPanelProps> = ({
                     className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition-colors shadow-sm"
                   >
                     <CheckCircle2 className="w-3.5 h-3.5" />
-                    1-Click 즉시 적용 (Apply)
+                    1-Click Apply
                   </button>
                 )}
               </div>
@@ -95,7 +95,7 @@ export const SlotOptimizationPanel: React.FC<SlotOptimizationPanelProps> = ({
                 <div className="bg-slate-900 p-3 rounded-lg border border-slate-800 space-y-2 font-mono text-xs">
                   <div className="text-[11px] font-bold text-slate-400 flex items-center gap-1.5">
                     <Terminal className="w-3.5 h-3.5 text-sky-400" />
-                    <span>Slurm &amp; NVIDIA GPU Power Cap 자동 제어 스크립트:</span>
+                    <span>Slurm &amp; NVIDIA GPU Power Cap Control Script:</span>
                   </div>
 
                   {slurmCommands.map((cmd, idx) => (

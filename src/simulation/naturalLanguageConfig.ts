@@ -116,9 +116,9 @@ export function parseNaturalLanguageInput(prompt: string): {
 
   const spec = GPU_HARDWARE_LIBRARY[gpuSpecId] || GPU_HARDWARE_LIBRARY.H100_SXM5;
   const chassisCount = Math.ceil(gpuCount / getGpusPerChassis(gpuSpecId));
-  const unitStr = areaUnit === 'pyeong' ? '평' : areaUnit === 'm2' ? 'm²' : 'm³';
+  const unitStr = areaUnit === 'pyeong' ? ' pyeong' : areaUnit === 'm2' ? ' m²' : ' m³';
 
-  const interpretation = `AI 자연어 해석: ${areaValue}${unitStr} 서버실 공간에 ${spec.name} GPU ${gpuCount}개 (서버 노드 ${chassisCount}대, 랙 ${rackCount}개) 자동 구성`;
+  const interpretation = `AI Natural Language Interpretation: Automatically configured ${gpuCount}x ${spec.name} GPUs (${chassisCount} server nodes, ${rackCount} racks) in ${areaValue}${unitStr} server room space`;
 
   return {
     params: {

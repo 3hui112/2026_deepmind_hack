@@ -266,7 +266,7 @@ function createProceduralBlueprintTexture(): THREE.CanvasTexture {
     // Architectural text watermark
     ctx.fillStyle = '#1e293b';
     ctx.font = 'bold 20px monospace';
-    ctx.fillText('대학원 전산실 Architectural CAD Blueprint Floorplan', 36, 48);
+    ctx.fillText('Data Center Architectural CAD Blueprint Floorplan', 36, 48);
   }
 
   const texture = new THREE.CanvasTexture(canvas);

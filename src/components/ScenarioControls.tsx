@@ -23,10 +23,10 @@ export const ScenarioControls: React.FC<ScenarioControlsProps> = ({
         <div>
           <h2 className="text-base font-semibold text-slate-100 flex items-center gap-2">
             <Compass className="w-5 h-5 text-sky-400" />
-            시나리오 프리셋 선택
+            Scenario Preset Selection
           </h2>
           <p className="text-xs text-slate-400 mt-0.5">
-            사전 검증된 3가지 서버실 기류·배치 프리셋을 전환하여 열 환경 변화를 비교합니다.
+            Switch between 3 pre-validated server room thermal layout presets to evaluate spatial temperature changes.
           </p>
         </div>
 
@@ -42,7 +42,7 @@ export const ScenarioControls: React.FC<ScenarioControlsProps> = ({
             }`}
           >
             <Layers className="w-3.5 h-3.5" />
-            2D 평면도
+            2D Floorplan
           </button>
           <button
             type="button"
@@ -54,7 +54,7 @@ export const ScenarioControls: React.FC<ScenarioControlsProps> = ({
             }`}
           >
             <Box className="w-3.5 h-3.5" />
-            3D 입체 뷰
+            3D Spatial View
           </button>
         </div>
       </div>
@@ -99,9 +99,9 @@ export const ScenarioControls: React.FC<ScenarioControlsProps> = ({
                 {ref.description}
               </p>
               <div className="mt-2.5 pt-2 border-t border-slate-800/60 flex items-center justify-between text-[11px] text-slate-400">
-                <span>기준 과열 랙</span>
+                <span>Overheated Racks</span>
                 <span className="font-mono font-semibold text-slate-300">
-                  {ref.racksAbove27C} / {ref.totalRacks} 대
+                  {ref.racksAbove27C} / {ref.totalRacks}
                 </span>
               </div>
             </button>

@@ -214,13 +214,13 @@ export const ServerRoom3D: React.FC<ServerRoom3DProps> = ({
           rendererInstance = gpuRenderer;
           activeType = 'webgpu';
         } catch (gpuError: any) {
-          failureReason = gpuError?.message || 'WebGPU 렌더러 초기화 실패';
+          failureReason = gpuError?.message || 'WebGPU renderer initialization failed';
         }
       } else {
         failureReason = forceCpuFallback
-          ? '개발자 설정으로 WebGPU compute가 비활성화되고 CPU 폴백 모드가 강제 실행되었습니다.'
+          ? 'WebGPU compute disabled by developer settings; CPU fallback mode enforced.'
           : gpuProbe.fallbackReason ||
-            '현재 브라우저/샌드박스 환경에서 WebGPU API(navigator.gpu)가 활성화되어 있지 않습니다.';
+            'WebGPU API (navigator.gpu) is not enabled in current browser/sandbox environment.';
       }
 
       // If WebGPU failed or unavailable, try WebGL2
@@ -237,12 +237,12 @@ export const ServerRoom3D: React.FC<ServerRoom3DProps> = ({
             activeType = 'webgl_fallback';
           } catch {
             activeType = 'software_3d';
-            failureReason = '하드웨어 그래픽 컨텍스트(WebGL/WebGPU) 비활성화 환경 감지';
+            failureReason = 'Hardware graphics context (WebGL/WebGPU) disabled environment detected';
           }
         } else {
           activeType = 'software_3d';
           failureReason =
-            '샌드박스 보안 설정으로 하드웨어 가속이 비활성화되어 2.5D 소프트웨어 3D 엔진으로 작동합니다.';
+            'Hardware acceleration is disabled by sandbox security settings; running on 2.5D software 3D engine.';
         }
       }
 
@@ -459,7 +459,7 @@ export const ServerRoom3D: React.FC<ServerRoom3DProps> = ({
                   draggedServerRef.current.powerKw,
                   draggedServerRef.current.nodeId
                 )
-              : { valid: false, reason: '해당 랙의 슬롯 상태 정보를 찾을 수 없습니다.' };
+              : { valid: false, reason: 'Slot state information for this rack could not be found.' };
 
             dropCandidateRef.current = {
               rackId,
@@ -541,15 +541,15 @@ export const ServerRoom3D: React.FC<ServerRoom3DProps> = ({
           }
         } else if (dragged) {
           // Failure Reason & Actionable Resolution Alert as requested
-          const failureReason = candidate?.reason || '해당 공간은 비어있지 않거나 유효한 슬롯이 아닙니다.';
-          const failureResolution = candidate?.resolution || '하늘색 윤곽선으로 표시된 빈 슬롯 범위로 이동하여 시도하세요.';
-          const targetText = candidate ? `${candidate.rackId} (U${candidate.startU})` : '미지정 위치';
+          const failureReason = candidate?.reason || 'This space is occupied or not a valid slot.';
+          const failureResolution = candidate?.resolution || 'Try moving to an empty slot range highlighted with cyan outline.';
+          const targetText = candidate ? `${candidate.rackId} (U${candidate.startU})` : 'Unspecified Location';
           alert(
-            `⚠️ [서버 노드 슬롯 이동 실패]\n\n` +
-            `• 대상 슬롯: ${targetText}\n` +
-            `• 실패 사유: ${failureReason}\n` +
-            `• 해결 방법: ${failureResolution}\n\n` +
-            `서버 장비(${dragged.name || dragged.nodeId})가 원래 랙(${dragged.rackId}, U${dragged.startU})으로 복원되었습니다.`
+            `⚠️ [Server Node Slot Placement Failed]\n\n` +
+            `• Target Slot: ${targetText}\n` +
+            `• Reason: ${failureReason}\n` +
+            `• Resolution: ${failureResolution}\n\n` +
+            `Server chassis (${dragged.name || dragged.nodeId}) restored to original rack (${dragged.rackId}, U${dragged.startU}).`
           );
         }
       };
@@ -722,10 +722,10 @@ export const ServerRoom3D: React.FC<ServerRoom3DProps> = ({
         <div>
           <h2 className="text-base font-semibold text-slate-100 flex items-center gap-2">
             <Layers className="w-5 h-5 text-sky-400" />
-            3D 서버실 디지털 트윈 & WebGPU Compute 기류/열 볼륨 시각화
+            3D Server Room Digital Twin &amp; WebGPU Compute Airflow/Thermal Volume
           </h2>
           <p className="text-xs text-slate-400 mt-0.5">
-            크기: {scenario.room.widthM}m × {scenario.room.heightM}m × {scenario.room.depthM}m | CRAC 냉기(청색) 급기 & 랙 후면 배기열(주황/적색) 3D 벡터장 대류
+            Dimensions: {scenario.room.widthM}m &times; {scenario.room.heightM}m &times; {scenario.room.depthM}m | CRAC cold supply (blue) &amp; Rack rear exhaust heat (orange/red) 3D vector field convection
           </p>
         </div>
 
@@ -745,20 +745,20 @@ export const ServerRoom3D: React.FC<ServerRoom3DProps> = ({
           {/* Active Compute Pipeline Badge */}
           {particleInfo.isCompute ? (
             <span
-              title="WebGPU TSL ComputeNode + instancedArray + StorageBuffer 파이프라인에서 GPU 병렬 연산으로 입자 및 3D 열 볼륨을 갱신합니다."
+              title="Particles & 3D thermal volume updated via GPU parallel compute on WebGPU TSL ComputeNode + instancedArray + StorageBuffer pipeline."
               className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono font-medium bg-emerald-950/80 text-emerald-400 border border-emerald-800/80"
             >
               <CheckCircle className="w-3.5 h-3.5" />
-              TSL Compute ({particleInfo.particleCount.toLocaleString()} 입자)
+              TSL Compute ({particleInfo.particleCount.toLocaleString()} particles)
             </span>
           ) : (
             <span
-              title={fallbackNotice || 'CPU 메모리 버퍼에서 입자 궤적을 갱신합니다.'}
+              title={fallbackNotice || 'Particle trajectories updated in CPU memory buffer.'}
               className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono font-medium bg-amber-950/80 text-amber-300 border border-amber-800/80"
             >
               <Cpu className="w-3.5 h-3.5 text-amber-400" />
               {rendererStatus === 'webgl_fallback' ? 'WebGL2 + CPU' : 'CPU fallback'} (
-              {particleInfo.particleCount.toLocaleString()} 입자)
+              {particleInfo.particleCount.toLocaleString()} particles)
             </span>
           )}
 
@@ -774,10 +774,10 @@ export const ServerRoom3D: React.FC<ServerRoom3DProps> = ({
             type="button"
             onClick={handleResetCamera}
             className="px-2.5 py-1 text-xs rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 flex items-center gap-1 transition-colors"
-            title="카메라 시점을 기본 위치로 리셋합니다."
+            title="Reset camera view to default position."
           >
             <RotateCcw className="w-3.5 h-3.5" />
-            시점 리셋
+            Reset View
           </button>
         </div>
       </div>
@@ -806,7 +806,7 @@ export const ServerRoom3D: React.FC<ServerRoom3DProps> = ({
             <span>
               <span className="text-slate-500">Thermal Volume:</span>{' '}
               <span className="text-amber-300">
-                36×18×5 3D StorageBuffer ({(36 * 18 * 5).toLocaleString()} 복셀)
+                36&times;18&times;5 3D StorageBuffer ({(36 * 18 * 5).toLocaleString()} voxels)
               </span>
             </span>
           </div>
@@ -814,7 +814,7 @@ export const ServerRoom3D: React.FC<ServerRoom3DProps> = ({
           {/* WebGPU Particle Count Scale Selector (20,000 ~ 50,000) */}
           {particleInfo.isCompute && (
             <div className="flex items-center gap-1.5">
-              <span className="text-slate-400">입자 규모:</span>
+              <span className="text-slate-400">Particles:</span>
               {WEBGPU_PARTICLE_PRESET_COUNTS.map((count) => (
                 <button
                   key={count}
@@ -846,10 +846,10 @@ export const ServerRoom3D: React.FC<ServerRoom3DProps> = ({
                 ? 'bg-sky-600/30 text-sky-300 border-sky-500/60'
                 : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-slate-200'
             }`}
-            title="냉기/배기 기류 입자 시각화를 켜거나 끕니다."
+            title="Toggle airflow particle vector visualization."
           >
             <Wind className="w-3.5 h-3.5" />
-            <span>기류 입자 {showParticles ? 'ON' : 'OFF'}</span>
+            <span>Airflow Particles {showParticles ? 'ON' : 'OFF'}</span>
           </button>
 
           {/* 3D Thermal Volume Toggle */}
@@ -861,10 +861,10 @@ export const ServerRoom3D: React.FC<ServerRoom3DProps> = ({
                 ? 'bg-indigo-600/30 text-indigo-300 border-indigo-500/60'
                 : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-slate-200'
             }`}
-            title="GPU StorageBuffer 기반 3D 공간 열 격자 볼륨 및 등온 슬라이스 평면을 켜거나 끕니다."
+            title="Toggle GPU StorageBuffer-based 3D thermal grid volume & isothermal slice planes."
           >
             <Box className="w-3.5 h-3.5" />
-            <span>3D 열 볼륨 {showThermalVolume ? 'ON' : 'OFF'}</span>
+            <span>3D Thermal Volume {showThermalVolume ? 'ON' : 'OFF'}</span>
           </button>
 
           {/* Force CPU Fallback Toggle (Verification Testing) */}
@@ -876,10 +876,10 @@ export const ServerRoom3D: React.FC<ServerRoom3DProps> = ({
                 ? 'bg-amber-600/30 text-amber-300 border-amber-500/60 ring-1 ring-amber-500/50'
                 : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-slate-200'
             }`}
-            title="개발자 테스트: WebGPU를 강제 비활성화하고 CPU 폴백 파이프라인을 검증합니다."
+            title="Developer testing: Force disable WebGPU to test CPU fallback pipeline."
           >
             <Cpu className="w-3.5 h-3.5" />
-            <span>강제 CPU 폴백 {forceCpuFallback ? 'ON' : 'OFF'}</span>
+            <span>Force CPU Fallback {forceCpuFallback ? 'ON' : 'OFF'}</span>
           </button>
 
           {/* Rack Labels Toggle */}
@@ -893,7 +893,7 @@ export const ServerRoom3D: React.FC<ServerRoom3DProps> = ({
             }`}
           >
             <Tag className="w-3.5 h-3.5" />
-            <span>랙 라벨 {showLabels ? 'ON' : 'OFF'}</span>
+            <span>Rack Labels {showLabels ? 'ON' : 'OFF'}</span>
           </button>
 
           {/* Heat Pillars Toggle */}
@@ -907,7 +907,7 @@ export const ServerRoom3D: React.FC<ServerRoom3DProps> = ({
             }`}
           >
             <Flame className="w-3.5 h-3.5" />
-            <span>배기 기둥 {showHeatPillars ? 'ON' : 'OFF'}</span>
+            <span>Exhaust Pillars {showHeatPillars ? 'ON' : 'OFF'}</span>
           </button>
 
           {/* FPS Counter Toggle */}
@@ -918,14 +918,14 @@ export const ServerRoom3D: React.FC<ServerRoom3DProps> = ({
               showFps ? 'text-sky-300 border-slate-700' : ''
             }`}
           >
-            FPS 토글
+            Toggle FPS
           </button>
         </div>
 
         {/* Visual disclaimer tag */}
         <div className="flex items-center gap-1 text-[11px] text-slate-400">
           <AlertCircle className="w-3 h-3 text-sky-400 shrink-0" />
-          <span>TSL Compute 시각화 (원본 열역학 수치 보존)</span>
+          <span>TSL Compute Visualization (Preserves exact physics)</span>
         </div>
       </div>
 
@@ -971,27 +971,27 @@ export const ServerRoom3D: React.FC<ServerRoom3DProps> = ({
                 onClick={() => setSelectedInfo(null)}
                 className="text-slate-500 hover:text-slate-300 p-0.5 rounded"
               >
-                ✕
+                &#10005;
               </button>
             </div>
 
             <div className="space-y-1.5 text-slate-300 font-mono text-[11px]">
               <div className="flex justify-between">
-                <span className="text-slate-500">장비 유형:</span>
+                <span className="text-slate-500">Equipment Type:</span>
                 <span className="capitalize font-semibold text-slate-200">
-                  {selectedInfo.type === 'rack' ? '서버 랙 (19인치)' : 'CRAC 공조기'}
+                  {selectedInfo.type === 'rack' ? 'Server Rack (19-inch)' : 'CRAC AC Unit'}
                 </span>
               </div>
 
               {selectedInfo.type === 'rack' && selectedInfo.temp !== undefined && (
                 <div className="flex justify-between">
-                  <span className="text-slate-500">전면 흡입 온도:</span>
+                  <span className="text-slate-500">Front Intake Temp:</span>
                   <span
                     className={`font-bold ${
                       selectedInfo.temp > 27 ? 'text-rose-400' : 'text-emerald-400'
                     }`}
                   >
-                    {selectedInfo.temp.toFixed(1)} °C
+                    {selectedInfo.temp.toFixed(1)} &deg;C
                   </span>
                 </div>
               )}
@@ -1009,24 +1009,24 @@ export const ServerRoom3D: React.FC<ServerRoom3DProps> = ({
 
                 const emptyRangesText = emptyRanges.length > 0
                   ? emptyRanges.map(r => r.startU === r.endU ? `U${r.startU}` : `U${r.startU}~U${r.endU}(${r.availableU}U)`).join(', ')
-                  : '없음 (100% 만석)';
+                  : 'None (100% Occupied)';
 
                 return (
                   <div className="pt-2 border-t border-slate-800/80 space-y-1.5 text-[11px]">
                     <div className="bg-slate-950 p-2 rounded border border-slate-800 space-y-1">
                       <div className="flex justify-between text-slate-300 font-semibold">
-                        <span>슬롯 공간 가동률:</span>
+                        <span>Slot Utilization:</span>
                         <span className="text-sky-300">{usedU}/{totalU} U ({((usedU / totalU) * 100).toFixed(0)}%)</span>
                       </div>
                       <div className="flex justify-between text-amber-300 font-semibold">
-                        <span>잔여 빈 슬롯:</span>
-                        <span>{emptyU} U ({((emptyU / totalU) * 100).toFixed(0)}% 여유)</span>
+                        <span>Available Free Slots:</span>
+                        <span>{emptyU} U ({((emptyU / totalU) * 100).toFixed(0)}% free)</span>
                       </div>
                     </div>
 
                     <div className="bg-slate-950/60 p-2 rounded border border-slate-800/60 space-y-1 text-[10.5px]">
                       <span className="text-slate-400 block font-bold text-sky-400">
-                        📦 빈 슬롯 구역 (Wireframe 표시):
+                        📦 Empty Slot Ranges (Wireframe):
                       </span>
                       <p className="text-slate-200 leading-snug break-words font-mono">
                         {emptyRangesText}
@@ -1034,7 +1034,7 @@ export const ServerRoom3D: React.FC<ServerRoom3DProps> = ({
                     </div>
 
                     <div className="flex justify-between text-[10.5px] text-slate-400 pt-0.5">
-                      <span>PDU 부하 (NEC 80%):</span>
+                      <span>PDU Load (NEC 80%):</span>
                       <span className={powerMetrics.isBreakerOverloaded ? 'text-rose-400 font-bold' : 'text-emerald-400 font-semibold'}>
                         {powerMetrics.totalPowerKw} / {powerMetrics.necSafeLimitKw} kW ({Math.round(powerMetrics.breakerUtilization * 100)}%)
                       </span>
@@ -1048,7 +1048,7 @@ export const ServerRoom3D: React.FC<ServerRoom3DProps> = ({
                           className="flex-1 px-2 py-1 rounded bg-amber-900/60 hover:bg-amber-800 text-amber-200 font-sans text-center transition-colors font-medium text-[10.5px] flex items-center justify-center gap-1"
                         >
                           <RotateCcw className="w-3 h-3 text-amber-400" />
-                          <span>랙 180° 회전</span>
+                          <span>Rotate Rack 180&deg;</span>
                         </button>
                       )}
 
@@ -1056,20 +1056,20 @@ export const ServerRoom3D: React.FC<ServerRoom3DProps> = ({
                         type="button"
                         onClick={() => {
                           alert(
-                            `📊 [${selectedInfo.id} 서버 랙 상세 슬롯 및 전력 리포트]\n\n` +
-                            `• 흡입 온도: ${selectedInfo.temp?.toFixed(1)}°C\n` +
-                            `• 전체 U-스페이스: ${totalU} U\n` +
-                            `• 사용 중 슬롯: ${usedU} U (${((usedU / totalU) * 100).toFixed(1)}%)\n` +
-                            `• 잔여 빈 슬롯: ${emptyU} U (${((emptyU / totalU) * 100).toFixed(1)}%)\n\n` +
-                            `• 빈 슬롯 구간 목록:\n  ${emptyRangesText}\n\n` +
-                            `• 탑재 서버 장비 (${rackState.installedServers.length}대):\n` +
+                            `📊 [${selectedInfo.id} Server Rack Slot & Power Report]\n\n` +
+                            `• Intake Temp: ${selectedInfo.temp?.toFixed(1)}°C\n` +
+                            `• Total U-Space: ${totalU} U\n` +
+                            `• Occupied Slots: ${usedU} U (${((usedU / totalU) * 100).toFixed(1)}%)\n` +
+                            `• Free Slots: ${emptyU} U (${((emptyU / totalU) * 100).toFixed(1)}%)\n\n` +
+                            `• Empty Slot Ranges:\n  ${emptyRangesText}\n\n` +
+                            `• Installed Servers (${rackState.installedServers.length}):\n` +
                             rackState.installedServers.map(s => `  - U${s.startU}~U${s.startU + s.uHeight - 1}: ${s.name} (${s.powerKw * s.loadFactor}kW)`).join('\n') + `\n\n` +
-                            `• PDU 전력: ${powerMetrics.totalPowerKw} kW / NEC 80% 안전 한도 ${powerMetrics.necSafeLimitKw} kW`
+                            `• PDU Power: ${powerMetrics.totalPowerKw} kW / NEC 80% limit ${powerMetrics.necSafeLimitKw} kW`
                           );
                         }}
                         className="flex-1 px-2 py-1 rounded bg-sky-900/60 hover:bg-sky-800 text-sky-200 font-sans text-center transition-colors font-medium text-[10.5px]"
                       >
-                        상세 Alert 보기
+                        View Details
                       </button>
                     </div>
 
@@ -1084,7 +1084,7 @@ export const ServerRoom3D: React.FC<ServerRoom3DProps> = ({
                       return (
                         <div className="bg-slate-950 p-2 rounded border border-slate-800/80 space-y-1.5 text-[10.5px]">
                           <div className="flex justify-between items-center text-slate-400 font-bold">
-                            <span>📍 3D 도면 위치 (X, Z 좌표):</span>
+                            <span>📍 3D Position (X, Z coords):</span>
                             <span className="font-mono text-sky-300">
                               [{posX.toFixed(1)}m, {posZ.toFixed(1)}m]
                             </span>
@@ -1101,9 +1101,9 @@ export const ServerRoom3D: React.FC<ServerRoom3DProps> = ({
                                 ])
                               }
                               className="px-1.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-center font-bold"
-                              title="X축 -0.5m 이동"
+                              title="Move X -0.5m"
                             >
-                              ◀ X-
+                              &#9664; X-
                             </button>
                             <button
                               type="button"
@@ -1115,9 +1115,9 @@ export const ServerRoom3D: React.FC<ServerRoom3DProps> = ({
                                 ])
                               }
                               className="px-1.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-center font-bold"
-                              title="X축 +0.5m 이동"
+                              title="Move X +0.5m"
                             >
-                              X+ ▶
+                              X+ &#9654;
                             </button>
                             <button
                               type="button"
@@ -1129,9 +1129,9 @@ export const ServerRoom3D: React.FC<ServerRoom3DProps> = ({
                                 ])
                               }
                               className="px-1.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-center font-bold"
-                              title="Z축 -0.5m 이동"
+                              title="Move Z -0.5m"
                             >
-                              ▲ Z-
+                              &#9650; Z-
                             </button>
                             <button
                               type="button"
@@ -1143,9 +1143,9 @@ export const ServerRoom3D: React.FC<ServerRoom3DProps> = ({
                                 ])
                               }
                               className="px-1.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-center font-bold"
-                              title="Z축 +0.5m 이동"
+                              title="Move Z +0.5m"
                             >
-                              Z+ ▼
+                              Z+ &#9660;
                             </button>
                           </div>
                         </div>
@@ -1157,9 +1157,9 @@ export const ServerRoom3D: React.FC<ServerRoom3DProps> = ({
 
               {selectedInfo.type === 'crac' && (
                 <div>
-                  <span className="text-slate-500">가동 상태: </span>
+                  <span className="text-slate-500">Operating Status: </span>
                   <span className={selectedInfo.active ? 'text-sky-400 font-bold' : 'text-rose-400 font-bold'}>
-                    {selectedInfo.active ? '정상 가동 (냉기 토출)' : '정지 (Off - 기류 없음)'}
+                    {selectedInfo.active ? 'Active (Cool Air Supply)' : 'Inactive (Off - No Airflow)'}
                   </span>
                 </div>
               )}
@@ -1172,16 +1172,16 @@ export const ServerRoom3D: React.FC<ServerRoom3DProps> = ({
           <div className="absolute top-3 right-3 bg-slate-900/90 backdrop-blur px-3 py-1.5 rounded-lg border border-slate-800 text-[11px] space-y-1 select-none pointer-events-none">
             <div className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-[#38bdf8] inline-block shadow-sm" />
-              <span className="text-slate-300">Cold Emitter (CRAC 하부 급기 기류)</span>
+              <span className="text-slate-300">Cold Emitter (CRAC floor supply airflow)</span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-[#f43f5e] inline-block shadow-sm" />
-              <span className="text-slate-300">Hot Emitter (랙 후면 열기둥 대류)</span>
+              <span className="text-slate-300">Hot Emitter (Rack rear thermal chimney)</span>
             </div>
             {showThermalVolume && (
               <div className="flex items-center gap-1.5">
                 <span className="w-2.5 h-2.5 rounded-sm bg-amber-400/80 inline-block shadow-sm" />
-                <span className="text-slate-300">3D Thermal Grid Volume (GPU 격자)</span>
+                <span className="text-slate-300">3D Thermal Grid Volume (GPU Grid)</span>
               </div>
             )}
           </div>
@@ -1189,11 +1189,11 @@ export const ServerRoom3D: React.FC<ServerRoom3DProps> = ({
 
         {/* Orbit navigation tips at bottom-right */}
         <div className="absolute bottom-3 right-3 bg-slate-900/90 backdrop-blur px-2.5 py-1.5 rounded-md border border-slate-800 text-[11px] text-slate-400 flex items-center gap-2 select-none pointer-events-none">
-          <span>마우스 좌클릭: 3D 회전</span>
+          <span>Left Click: 3D Rotate</span>
           <span className="text-slate-600">|</span>
-          <span>우클릭/Shift: 이동</span>
+          <span>Right Click / Shift: Pan</span>
           <span className="text-slate-600">|</span>
-          <span>휠: 확대/축소</span>
+          <span>Wheel: Zoom</span>
         </div>
       </div>
 

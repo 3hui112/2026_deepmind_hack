@@ -204,7 +204,7 @@ export default function App() {
                 Data Center Thermal Digital Twin
               </h1>
               <p className="text-xs text-slate-400">
-                Gemini 4 Argon Hard-Tech GPU Rack U-Slot 공간 배치 및 WebGPU 열유동 시뮬레이터
+                Gemini 4 Argon Hard-Tech GPU Rack U-Slot Spatial Placement &amp; WebGPU Thermal Fluid Dynamics Simulator
               </p>
             </div>
           </div>
@@ -225,7 +225,7 @@ export default function App() {
                 <span
                   title={
                     adapterReport.fallbackReason ||
-                    'navigator.gpu 비활성화 — WebGL2/CPU 폴백 모드로 안전하게 실행됩니다.'
+                    'navigator.gpu disabled — Safely running in WebGL2/CPU fallback mode.'
                   }
                   className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono font-medium bg-amber-950/80 text-amber-300 border border-amber-800/80"
                 >
@@ -238,19 +238,19 @@ export default function App() {
             {/* Backend Runtime Connection Badge */}
             {backendStatus.connected ? (
               <span
-                title={`Node.js Express 백엔드(/api/health)가 정상 연결되어 응답 중입니다. (기록 시각: ${backendStatus.timestamp ?? '정상'})`}
+                title={`Node.js Express Backend (/api/health) connected successfully. (Timestamp: ${backendStatus.timestamp ?? 'Active'})`}
                 className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono font-medium bg-emerald-950/80 text-emerald-400 border border-emerald-800/80"
               >
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                Backend: Node.js (API 정상)
+                Backend: Node.js (API Active)
               </span>
             ) : (
               <span
-                title="Node.js 백엔드 서버 응답 대기 중..."
+                title="Connecting to Node.js backend server..."
                 className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono font-medium bg-slate-800 text-slate-400 border border-slate-700"
               >
                 <Radio className="w-3.5 h-3.5 text-slate-400" />
-                Backend: 연결 중...
+                Backend: Connecting...
               </span>
             )}
 
@@ -278,12 +278,12 @@ export default function App() {
         </div>
 
         {/* Automated 3D Digital Twin & WebGPU Thermal Configurator (Natural Language & Parameters) */}
-        <section aria-label="자동 3D 디지털 트윈 설정">
+        <section aria-label="Automated 3D Digital Twin Configuration">
           <DigitalTwinInputConfigurator onApplyCustomTwin={handleApplyCustomTwin} />
         </section>
 
         {/* Section 1: Preset Controls & 2D/3D View Switcher */}
-        <section aria-label="시나리오 프리셋 제어">
+        <section aria-label="Scenario Preset Controls">
           <ScenarioControls
             selectedPreset={selectedPreset}
             onSelectPreset={handleSelectPreset}
@@ -293,7 +293,7 @@ export default function App() {
         </section>
 
         {/* Capability 1: Custom Server Room Dimensions & CAD Blueprint Overlay */}
-        <section aria-label="커스텀 서버실 도면 설정">
+        <section aria-label="Custom Server Room Blueprint Controls">
           <BlueprintOverlayControls
             room={customRoom}
             onUpdateRoom={setCustomRoom}
@@ -303,12 +303,12 @@ export default function App() {
         </section>
 
         {/* Section 2: Key Metrics Panel & Verification */}
-        <section aria-label="핵심 열 지표">
+        <section aria-label="Key Thermal Metrics">
           <MetricsPanel result={simulationResult} selectedPreset={selectedPreset} />
         </section>
 
         {/* Section 3: 2D or 3D Simulation Viewport */}
-        <section aria-label="시뮬레이션 영역">
+        <section aria-label="Simulation Viewport">
           {viewMode === '2D' ? (
             <Simulator2D
               scenario={scenario}
@@ -332,7 +332,7 @@ export default function App() {
         </section>
 
         {/* Capability 2: Interactive Rack U-Slot Manager & Drag-and-Drop */}
-        <section aria-label="랙 U-슬롯 및 PDU 공간 관리자">
+        <section aria-label="Rack U-Slot and PDU Manager">
           <RackUSlotManager
             scenario={scenario}
             rackSlotStates={rackSlotStates}
@@ -343,7 +343,7 @@ export default function App() {
         </section>
 
         {/* Capability 3: Gemini 4 Argon U-Slot Optimization & Emergency Shedding */}
-        <section aria-label="Argon 슬롯 재배치 및 비상 제어">
+        <section aria-label="Argon Slot Placement & Emergency Control">
           <SlotOptimizationPanel
             optimizationResult={slotOptimization}
             rackSlotStates={rackSlotStates}
@@ -352,7 +352,7 @@ export default function App() {
         </section>
 
         {/* Section 5: Gemini Argon Analysis Engine */}
-        <section aria-label="Gemini Argon 분석">
+        <section aria-label="Gemini Argon Analysis">
           <ArgonAnalysisPanel scenario={scenario} simulationResult={simulationResult} />
         </section>
       </main>

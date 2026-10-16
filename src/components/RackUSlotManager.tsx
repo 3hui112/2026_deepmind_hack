@@ -146,10 +146,10 @@ export const RackUSlotManager: React.FC<RackUSlotManagerProps> = ({
           </div>
           <div>
             <h2 className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
-              Rack U-Slot 공간 &amp; PDU 차단기 관리자
+              Rack U-Slot Space &amp; PDU Breaker Manager
             </h2>
             <p className="text-xs text-slate-400">
-              U01–U42 수직 슬롯 마우스 드래그 앤 드롭 배치 및 80% PDU 차단기 부하 임계 검증
+              U01–U42 vertical slot drag-and-drop placement &amp; 80% PDU continuous duty threshold validation
             </p>
           </div>
         </div>
@@ -177,7 +177,7 @@ export const RackUSlotManager: React.FC<RackUSlotManagerProps> = ({
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5 font-bold text-slate-200">
             <Zap className="w-4 h-4 text-amber-400" />
-            <span>{selectedRackId} PDU 부하:</span>
+            <span>{selectedRackId} PDU Load:</span>
           </div>
           <span className="font-mono text-base font-bold text-white">
             {powerMetrics.totalPowerKw} kW
@@ -189,12 +189,12 @@ export const RackUSlotManager: React.FC<RackUSlotManagerProps> = ({
           {powerMetrics.isBreakerOverloaded ? (
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-rose-950/90 text-rose-300 border border-rose-800 font-bold">
               <ShieldAlert className="w-4 h-4 text-rose-400" />
-              PDU 과부하 경고 (NEC 80% 초과: {powerMetrics.necSafeLimitKw} kW 안전 기준)
+              PDU Overload Warning (Exceeds NEC 80%: {powerMetrics.necSafeLimitKw} kW safe threshold)
             </span>
           ) : (
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-emerald-950/80 text-emerald-300 border border-emerald-800 font-semibold">
               <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-              NEC 80% 안전 가이드 준수 ({powerMetrics.necSafeLimitKw} kW 여유)
+              NEC 80% Safety Compliant ({powerMetrics.necSafeLimitKw} kW headroom)
             </span>
           )}
         </div>
@@ -205,7 +205,7 @@ export const RackUSlotManager: React.FC<RackUSlotManagerProps> = ({
         {/* Left Col: Front Elevation Rack View (U01 to U42) */}
         <div className="lg:col-span-7 bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
           <div className="flex items-center justify-between text-xs font-bold text-slate-300 border-b border-slate-800 pb-2">
-            <span>랙 전면 실장도 (Rack Elevation View: U01 ➔ U42)</span>
+            <span>Rack Front Elevation View (U01 ➔ U42)</span>
             <span className="text-sky-400 font-mono">Total: {currentRackState.totalU}U</span>
           </div>
 
@@ -257,7 +257,7 @@ export const RackUSlotManager: React.FC<RackUSlotManagerProps> = ({
                             </span>
                             <button
                               onClick={() => handleUnmountServer(server.id)}
-                              title="서버 마운트 해제"
+                              title="Unmount server"
                               className="p-1 hover:bg-sky-900 text-slate-300 hover:text-rose-300 rounded"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -284,7 +284,7 @@ export const RackUSlotManager: React.FC<RackUSlotManagerProps> = ({
           {/* Component Palette */}
           <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
             <h3 className="text-xs font-bold text-slate-200 flex items-center justify-between">
-              <span>GPU 서버 팔레트 (Hardware Library)</span>
+              <span>GPU Server Palette (Hardware Library)</span>
               <span className="text-xs text-sky-400 font-mono">Preset Library</span>
             </h3>
 
@@ -319,7 +319,7 @@ export const RackUSlotManager: React.FC<RackUSlotManagerProps> = ({
             {/* Mount Action Controls */}
             <div className="pt-2 border-t border-slate-800 space-y-2 text-xs">
               <div className="flex items-center justify-between">
-                <span className="text-slate-400">시작 U 슬롯 지정:</span>
+                <span className="text-slate-400">Start U Slot:</span>
                 <input
                   type="number"
                   min={1}
@@ -335,7 +335,7 @@ export const RackUSlotManager: React.FC<RackUSlotManagerProps> = ({
                 className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition-colors shadow-md"
               >
                 <Plus className="w-4 h-4" />
-                선택 GPU 서버 {selectedRackId}에 마운트
+                Mount Selected GPU Server to {selectedRackId}
               </button>
             </div>
           </div>
@@ -343,7 +343,7 @@ export const RackUSlotManager: React.FC<RackUSlotManagerProps> = ({
           {/* Continuous Free Space Summary Badges */}
           <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2 text-xs">
             <div className="font-bold text-slate-300 flex items-center justify-between">
-              <span>연속 유휴 슬롯 (Empty Space Summary)</span>
+              <span>Continuous Empty Space Summary</span>
             </div>
             <div className="flex flex-wrap gap-2">
               {emptyRanges.map((range, idx) => (
@@ -352,7 +352,7 @@ export const RackUSlotManager: React.FC<RackUSlotManagerProps> = ({
                   className="px-2.5 py-1 rounded bg-slate-900 text-sky-300 border border-slate-800 font-mono"
                 >
                   U{range.startU.toString().padStart(2, '0')}–U
-                  {range.endU.toString().padStart(2, '0')} ({range.availableU}U 사용 가능)
+                  {range.endU.toString().padStart(2, '0')} ({range.availableU}U available)
                 </span>
               ))}
             </div>

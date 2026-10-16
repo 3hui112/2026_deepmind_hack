@@ -182,13 +182,13 @@ export function canPlaceServerNode(
   const emptyRanges = getEmptyUSlotRanges(rackState);
   const emptySummary = emptyRanges.length > 0
     ? emptyRanges.map((r) => `U${r.startU}~U${r.endU}(${r.availableU}U)`).join(', ')
-    : '없음';
+    : 'None';
 
   if (startU < 1 || startU + uHeight - 1 > rackState.totalU) {
     return {
       valid: false,
-      reason: `U-Slot 범위를 벗어남 (1~${rackState.totalU}U)`,
-      resolution: `랙의 전체 높이(${rackState.totalU}U) 내 빈 슬롯 범위(${emptySummary})로 드래그하여 배치하세요.`,
+      reason: `Out of U-Slot range (1~${rackState.totalU}U)`,
+      resolution: `Drag and place within the empty slot range (${emptySummary}) inside total rack height (${rackState.totalU}U).`,
     };
   }
 
@@ -199,8 +199,8 @@ export function canPlaceServerNode(
     if (Math.max(startU, server.startU) <= Math.min(endU, sEndU)) {
       return {
         valid: false,
-        reason: `이미 사용 중인 슬롯과 중복됨 (${server.name || server.id}: U${server.startU}~U${sEndU})`,
-        resolution: `하늘색 윤곽선으로 표시된 빈 슬롯 범위(${emptySummary})로 드래그하거나, 대상 위치의 서버를 먼저 이동/스왑하세요.`,
+        reason: `Overlaps with an occupied slot (${server.name || server.id}: U${server.startU}~U${sEndU})`,
+        resolution: `Drag to an empty slot range (${emptySummary}) or relocate/swap the existing server first.`,
       };
     }
   }
@@ -216,8 +216,8 @@ export function canPlaceServerNode(
   if (projectedPowerKw > currentMetrics.necSafeLimitKw) {
     return {
       valid: false,
-      reason: `PDU NEC 80% 전력 한도 초과 (예상 부하: ${projectedPowerKw.toFixed(1)}kW > 허용 한도: ${currentMetrics.necSafeLimitKw.toFixed(1)}kW)`,
-      resolution: `해당 랙의 기존 고전력 GPU 노드를 다른 랙이나 보관함(Staging Shelf)으로 재배치하여 PDU 전력 여유를 확보하세요.`,
+      reason: `Exceeds PDU NEC 80% power limit (Projected load: ${projectedPowerKw.toFixed(1)}kW > Safe limit: ${currentMetrics.necSafeLimitKw.toFixed(1)}kW)`,
+      resolution: `Relocate existing high-power GPU nodes to another rack to free up PDU power headroom.`,
     };
   }
 
