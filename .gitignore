@@ -8,9 +8,8 @@ build/
 out/
 coverage/
 
-# Deployment & Container configs not needed for implementation
-Dockerfile
-.dockerignore
+# Deployment & Container configs
+#! Dockerfile included for Cloud Run deployment
 
 # Reference & Harness
 reference/

@@ -1040,25 +1040,117 @@ export const ServerRoom3D: React.FC<ServerRoom3DProps> = ({
                       </span>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => {
-                        alert(
-                          `📊 [${selectedInfo.id} 서버 랙 상세 슬롯 및 전력 리포트]\n\n` +
-                          `• 흡입 온도: ${selectedInfo.temp?.toFixed(1)}°C\n` +
-                          `• 전체 U-스페이스: ${totalU} U\n` +
-                          `• 사용 중 슬롯: ${usedU} U (${((usedU / totalU) * 100).toFixed(1)}%)\n` +
-                          `• 잔여 빈 슬롯: ${emptyU} U (${((emptyU / totalU) * 100).toFixed(1)}%)\n\n` +
-                          `• 빈 슬롯 구간 목록:\n  ${emptyRangesText}\n\n` +
-                          `• 탑재 서버 장비 (${rackState.installedServers.length}대):\n` +
-                          rackState.installedServers.map(s => `  - U${s.startU}~U${s.startU + s.uHeight - 1}: ${s.name} (${s.powerKw * s.loadFactor}kW)`).join('\n') + `\n\n` +
-                          `• PDU 전력: ${powerMetrics.totalPowerKw} kW / NEC 80% 안전 한도 ${powerMetrics.necSafeLimitKw} kW`
-                        );
-                      }}
-                      className="w-full mt-1 px-2 py-1 rounded bg-sky-900/60 hover:bg-sky-800 text-sky-200 font-sans text-center transition-colors font-medium text-[10.5px]"
-                    >
-                      슬롯 빈 공간 상세 Alert 보기
-                    </button>
+                    <div className="flex gap-1.5 pt-1">
+                      {onRotateRack && (
+                        <button
+                          type="button"
+                          onClick={() => onRotateRack(selectedInfo.id)}
+                          className="flex-1 px-2 py-1 rounded bg-amber-900/60 hover:bg-amber-800 text-amber-200 font-sans text-center transition-colors font-medium text-[10.5px] flex items-center justify-center gap-1"
+                        >
+                          <RotateCcw className="w-3 h-3 text-amber-400" />
+                          <span>랙 180° 회전</span>
+                        </button>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          alert(
+                            `📊 [${selectedInfo.id} 서버 랙 상세 슬롯 및 전력 리포트]\n\n` +
+                            `• 흡입 온도: ${selectedInfo.temp?.toFixed(1)}°C\n` +
+                            `• 전체 U-스페이스: ${totalU} U\n` +
+                            `• 사용 중 슬롯: ${usedU} U (${((usedU / totalU) * 100).toFixed(1)}%)\n` +
+                            `• 잔여 빈 슬롯: ${emptyU} U (${((emptyU / totalU) * 100).toFixed(1)}%)\n\n` +
+                            `• 빈 슬롯 구간 목록:\n  ${emptyRangesText}\n\n` +
+                            `• 탑재 서버 장비 (${rackState.installedServers.length}대):\n` +
+                            rackState.installedServers.map(s => `  - U${s.startU}~U${s.startU + s.uHeight - 1}: ${s.name} (${s.powerKw * s.loadFactor}kW)`).join('\n') + `\n\n` +
+                            `• PDU 전력: ${powerMetrics.totalPowerKw} kW / NEC 80% 안전 한도 ${powerMetrics.necSafeLimitKw} kW`
+                          );
+                        }}
+                        className="flex-1 px-2 py-1 rounded bg-sky-900/60 hover:bg-sky-800 text-sky-200 font-sans text-center transition-colors font-medium text-[10.5px]"
+                      >
+                        상세 Alert 보기
+                      </button>
+                    </div>
+
+                    {/* 3D Rack Position Adjustment Controls */}
+                    {onUpdateRackPosition && (() => {
+                      const currentRack = scenario.racks.find((r) => r.id === selectedInfo.id);
+                      if (!currentRack) return null;
+
+                      const posX = currentRack.position[0];
+                      const posZ = currentRack.position[2];
+
+                      return (
+                        <div className="bg-slate-950 p-2 rounded border border-slate-800/80 space-y-1.5 text-[10.5px]">
+                          <div className="flex justify-between items-center text-slate-400 font-bold">
+                            <span>📍 3D 도면 위치 (X, Z 좌표):</span>
+                            <span className="font-mono text-sky-300">
+                              [{posX.toFixed(1)}m, {posZ.toFixed(1)}m]
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-4 gap-1 pt-0.5 font-mono">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                onUpdateRackPosition(selectedInfo.id, [
+                                  Math.max(-scenario.room.widthM / 2 + 0.5, posX - 0.5),
+                                  0,
+                                  posZ,
+                                ])
+                              }
+                              className="px-1.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-center font-bold"
+                              title="X축 -0.5m 이동"
+                            >
+                              ◀ X-
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                onUpdateRackPosition(selectedInfo.id, [
+                                  Math.min(scenario.room.widthM / 2 - 0.5, posX + 0.5),
+                                  0,
+                                  posZ,
+                                ])
+                              }
+                              className="px-1.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-center font-bold"
+                              title="X축 +0.5m 이동"
+                            >
+                              X+ ▶
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                onUpdateRackPosition(selectedInfo.id, [
+                                  posX,
+                                  0,
+                                  Math.max(-scenario.room.depthM / 2 + 0.5, posZ - 0.5),
+                                ])
+                              }
+                              className="px-1.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-center font-bold"
+                              title="Z축 -0.5m 이동"
+                            >
+                              ▲ Z-
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                onUpdateRackPosition(selectedInfo.id, [
+                                  posX,
+                                  0,
+                                  Math.min(scenario.room.depthM / 2 - 0.5, posZ + 0.5),
+                                ])
+                              }
+                              className="px-1.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-center font-bold"
+                              title="Z축 +0.5m 이동"
+                            >
+                              Z+ ▼
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </div>
                 );
               })()}

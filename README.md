@@ -47,6 +47,43 @@ To prevent inlet air recirculation and thermal hotspots when operating ultra-hig
 
 ---
 
+## 🏗️ System Architecture & How It Works
+
+```mermaid
+flowchart TD
+    NL["🤖 Natural Language / Parameters"] -->|parseNaturalLanguageInput| Scenario["📐 Scenario & Room Setup (3.3058 m²/평)"]
+    CAD["🗺️ CAD Blueprint Floorplan"] -->|Overlay & Drag| Canvas2D["2D Interactive Canvas (Simulator2D)"]
+    Scenario --> Canvas3D["📦 WebGPU 3D Digital Twin (ServerRoom3D)"]
+    Canvas2D -->|Rack Drag & 180° Rotate| ThermalEng["⚡ Thermal Field & Airflow Compute"]
+    
+    SlotManager["🖥️ Rack U-Slot Manager"] -->|canPlaceServerNode| Guardrail["🛡️ PDU NEC 80% Rule & Overlap Check"]
+    Guardrail -->|Exceeded / Invalid| Alert["⚠️ Failure Cause & Resolution Guidance Alert"]
+    Guardrail -->|Passed| ThermalEng
+    
+    ThermalEng --> ArgonEngine["🧠 Gemini 4 Argon Physics Engine"]
+    ArgonEngine -->|Chimney Effect Analysis| Rec["✨ 1-Click Slot Move Recommendation"]
+    ArgonEngine -->|Emergency CRAC Trip| Script["💻 Slurm & NVIDIA GPU PowerCap Scripts"]
+    
+    ArgonEngine --> Sandbox["🧪 Antigravity Verification Harness Loop"]
+    Sandbox -->|python3 verify_harness.py| Pass["✅ 100% PASS Verification"]
+```
+
+### 🔍 Pipeline Breakdown
+1. **User Prompt & Input Processing**:
+   - The regex engine (`parseNaturalLanguageConfig`) extracts GPU specs, total GPU count, rack count, and room area (`평`, `m²`, `m³`).
+   - Converts Pyeong to spatial dimensions ($1\text{평} = 3.305785\,\text{m}^2 \implies W = \sqrt{2A}, D = W/2, H = 3.0\text{m}$).
+2. **Thermal & Airflow Physics Engine**:
+   - Uses Gauss-Seidel Poisson solver for potential flow airflow tracking ($Q = \rho C_p V \Delta T$).
+   - Computes vertical chimney stratification ($\Delta T_{\text{chimney}} = h \cdot 4.2^\circ\text{C}$) for each U-slot in 42U racks.
+3. **Closed-Loop Safety Guardrails**:
+   - Evaluates National Electrical Code (NEC) 80% continuous breaker limit ($V \cdot I \cdot 0.80$).
+   - Rejects invalid slot placements with detailed failure cause and actionable step-by-step resolution instructions.
+4. **Gemini 4 Argon Long-Horizon Verification**:
+   - Analyzes thermal plume distribution and generates 1-Click slot move recommendations.
+   - Evaluates 9-case perturbation sensitivity matrix in the Antigravity sandbox (`python3 verify_harness.py`).
+
+---
+
 ## 🛠️ Tech Stack
 
 | Category | Technology / Library |

@@ -186,13 +186,14 @@ export function analyzeAndOptimizeSlots(
     }
   });
 
-  // 2. Find hottest server chassis exceeding target temperature (27.0°C)
+  // 2. Find hottest server chassis that can benefit from lower U-slot or cooler rack
   let hottestServer: { server: InstalledServerChassis; rackId: string; tempC: number } | null = null;
 
   Object.entries(rackSlotStates).forEach(([rackId, state]) => {
     state.installedServers.forEach((server) => {
       const temp = server.slotIntakeTempC || 22.0;
-      if (temp > 27.0) {
+      // Trigger move recommendation if chassis intake is warm (> 24.5°C) or significantly elevated
+      if (temp > 24.5) {
         if (!hottestServer || temp > hottestServer.tempC) {
           hottestServer = { server, rackId, tempC: temp };
         }
@@ -200,34 +201,37 @@ export function analyzeAndOptimizeSlots(
     });
   });
 
-  // 3. Generate Slot Move Suggestion if a hot server exists
+  // 3. Generate Slot Move Suggestion if a warm/hot server exists
   if (hottestServer !== null) {
     const targetHotServer: { server: InstalledServerChassis; rackId: string; tempC: number } = hottestServer;
     const server = targetHotServer.server;
     const srcRackId = targetHotServer.rackId;
     const srcTemp = targetHotServer.tempC;
 
-    // Search for coolest available empty U-slot range that fits `server.uHeight`
+    // Search for coolest available empty U-slot range that fits `server.uHeight` (including same rack lower slots)
     let bestDest: { rackId: string; startU: number; expectedTempC: number } | null = null;
 
     Object.entries(rackSlotStates).forEach(([destRackId, destState]) => {
-      if (destRackId === srcRackId) return;
-
+      const isSameRack = destRackId === srcRackId;
       const metrics = getRackPowerMetrics(destState);
-      const addedKw = server.powerKw * server.loadFactor;
-      // Check PDU 80% NEC breaker headroom
-      if (metrics.totalPowerKw + addedKw > metrics.necSafeLimitKw) return;
+      const addedKw = isSameRack ? 0 : server.powerKw * server.loadFactor;
+
+      // Check PDU 80% NEC breaker headroom (if moving to a different rack)
+      if (!isSameRack && metrics.totalPowerKw + addedKw > metrics.necSafeLimitKw) return;
 
       const emptyRanges = getEmptyUSlotRanges(destState);
       emptyRanges.forEach((range) => {
         if (range.availableU >= server.uHeight) {
-          // Prefer lower slots (U01-U12) for lower temperature
           const candidateStartU = range.startU;
+          // Skip if same rack and same startU
+          if (isSameRack && candidateStartU === server.startU) return;
+
           const baseIntake = rackResults.find((r) => r.id === destRackId)?.intakeTempC || 20.0;
           const destSlotTemp = (slotIntakeTemps[destRackId] || {})[candidateStartU] || baseIntake;
 
           const currentBestTemp = bestDest !== null ? (bestDest as { expectedTempC: number }).expectedTempC : 999;
-          if (bestDest === null || destSlotTemp < currentBestTemp) {
+          // Accept if moving yields at least 0.5°C temperature drop
+          if (destSlotTemp < srcTemp - 0.5 && (bestDest === null || destSlotTemp < currentBestTemp)) {
             bestDest = { rackId: destRackId, startU: candidateStartU, expectedTempC: destSlotTemp };
           }
         }
@@ -237,10 +241,11 @@ export function analyzeAndOptimizeSlots(
     if (bestDest !== null) {
       const dest: { rackId: string; startU: number; expectedTempC: number } = bestDest;
       const tempDelta = dest.expectedTempC - srcTemp;
+      const locationLabel = dest.rackId === srcRackId ? `${dest.rackId} 하단` : dest.rackId;
       recommendations.push({
         id: 'REC-MOVE-01',
         type: 'MOVE_SLOT',
-        title: `재배치 권고: ${server.name} (${srcRackId} U${server.startU})`,
+        title: `재배치 권고: ${server.name} (${srcRackId} U${server.startU} ➔ ${locationLabel} U${dest.startU})`,
         targetChassisId: server.id,
         sourceRackId: srcRackId,
         sourceStartU: server.startU,
@@ -249,7 +254,7 @@ export function analyzeAndOptimizeSlots(
         expectedTempDeltaC: Number(tempDelta.toFixed(1)),
         rationale: `${srcRackId} 상단(U${server.startU})의 열기둥 재순환으로 인해 서버 흡입 온도가 ${srcTemp.toFixed(
           1
-        )}°C까지 상승했습니다. 여유 수용 공간과 냉기 공급이 양호한 ${dest.rackId} U${
+        )}°C까지 상승했습니다. 여유 수용 공간과 냉기 공급이 양호한 ${locationLabel} U${
           dest.startU
         } 슬롯으로 이동 시 약 ${Math.abs(tempDelta).toFixed(1)}°C 강하 효과가 예상됩니다.`,
       });
