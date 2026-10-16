@@ -10,8 +10,14 @@ import {
   getRackPowerMetrics,
   type RackUSlotState,
   type InstalledServerChassis,
+  type BlueprintOverlayConfig,
 } from '../domain/rackSlots';
-import { createScene, populateSceneMeshes, updateHeatmapTexture } from './createScene';
+import {
+  createScene,
+  populateSceneMeshes,
+  updateHeatmapTexture,
+  updateBlueprintOverlayTexture,
+} from './createScene';
 import { disposeScene } from './disposeScene';
 import { Isometric3DView } from './Isometric3DView';
 import { ThermalLegend } from '../components/ThermalLegend';
@@ -40,6 +46,7 @@ interface ServerRoom3DProps {
   onAdapterReport?: (report: WebGPUAdapterReport) => void;
   rackSlotStates?: Record<string, RackUSlotState>;
   onUpdateRackSlotStates?: (newStates: Record<string, RackUSlotState>) => void;
+  blueprintConfig?: BlueprintOverlayConfig;
 }
 
 type RendererStatus = 'initializing' | 'webgpu' | 'webgl_fallback' | 'software_3d';
@@ -74,6 +81,7 @@ export const ServerRoom3D: React.FC<ServerRoom3DProps> = ({
   onAdapterReport,
   rackSlotStates,
   onUpdateRackSlotStates,
+  blueprintConfig,
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const [rendererStatus, setRendererStatus] = useState<RendererStatus>('initializing');
@@ -141,7 +149,7 @@ export const ServerRoom3D: React.FC<ServerRoom3DProps> = ({
   // 3D Server Node Gizmo Dragging State
   const isDraggingRef = useRef<boolean>(false);
   const draggedServerRef = useRef<any>(null);
-  const dropCandidateRef = useRef<{ rackId: string; startU: number; valid: boolean; reason?: string } | null>(null);
+  const dropCandidateRef = useRef<{ rackId: string; startU: number; valid: boolean; reason?: string; resolution?: string } | null>(null);
   const ghostMeshRef = useRef<THREE.Mesh | null>(null);
   const highlightMeshRef = useRef<THREE.Mesh | null>(null);
 
@@ -171,7 +179,8 @@ export const ServerRoom3D: React.FC<ServerRoom3DProps> = ({
         aspect,
         showLabels,
         showHeatPillars,
-        rackSlotStatesRef.current
+        rackSlotStatesRef.current,
+        blueprintConfig
       );
       sceneRef.current = scene;
       cameraRef.current = camera;
@@ -453,6 +462,7 @@ export const ServerRoom3D: React.FC<ServerRoom3DProps> = ({
               startU: calcStartU,
               valid: check.valid,
               reason: check.reason,
+              resolution: check.resolution,
             };
 
             if (highlightMeshRef.current) {
@@ -526,13 +536,15 @@ export const ServerRoom3D: React.FC<ServerRoom3DProps> = ({
             }
           }
         } else if (dragged) {
-          // Failure Reason Alert as requested
+          // Failure Reason & Actionable Resolution Alert as requested
           const failureReason = candidate?.reason || '해당 공간은 비어있지 않거나 유효한 슬롯이 아닙니다.';
+          const failureResolution = candidate?.resolution || '하늘색 윤곽선으로 표시된 빈 슬롯 범위로 이동하여 시도하세요.';
           const targetText = candidate ? `${candidate.rackId} (U${candidate.startU})` : '미지정 위치';
           alert(
             `⚠️ [서버 노드 슬롯 이동 실패]\n\n` +
             `• 대상 슬롯: ${targetText}\n` +
-            `• 실패 사유: ${failureReason}\n\n` +
+            `• 실패 사유: ${failureReason}\n` +
+            `• 해결 방법: ${failureResolution}\n\n` +
             `서버 장비(${dragged.name || dragged.nodeId})가 원래 랙(${dragged.rackId}, U${dragged.startU})으로 복원되었습니다.`
           );
         }
@@ -656,6 +668,7 @@ export const ServerRoom3D: React.FC<ServerRoom3DProps> = ({
     }
     if (sceneRef.current) {
       updateHeatmapTexture(sceneRef.current, simulationResult);
+      updateBlueprintOverlayTexture(sceneRef.current, scenario.room, blueprintConfig);
     }
     if (particleManagerRef.current) {
       particleManagerRef.current.setScenario(scenario, simulationResult);
@@ -663,7 +676,7 @@ export const ServerRoom3D: React.FC<ServerRoom3DProps> = ({
     if (thermalVolumeRef.current) {
       thermalVolumeRef.current.setScenario(scenario, simulationResult);
     }
-  }, [scenario, simulationResult, showLabels, showHeatPillars, rackSlotStates]);
+  }, [scenario, simulationResult, showLabels, showHeatPillars, rackSlotStates, blueprintConfig]);
 
   // Toggle particle visibility cleanly
   useEffect(() => {

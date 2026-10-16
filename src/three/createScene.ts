@@ -6,7 +6,7 @@ import { createCracMesh } from './createCracMesh';
 import { disposeHierarchy } from './disposeScene';
 import { createThermalDataTexture } from './thermalTexture';
 
-import type { RackUSlotState } from '../domain/rackSlots';
+import type { RackUSlotState, BlueprintOverlayConfig } from '../domain/rackSlots';
 
 export interface SceneContext {
   scene: THREE.Scene;
@@ -20,6 +20,7 @@ export interface SceneContext {
  * - Origin: Room center (0, 0, 0)
  * - Floor and translucent walls
  * - Heatmap plane slightly above floor mapped with SimulationResult.temperatureGrid DataTexture
+ * - Blueprint CAD floorplan overlay mapped slightly above floor (Y = floorY + 0.01)
  * - AmbientLight and DirectionalLight ONLY (No shadows, no reflections, no external GLTF)
  */
 export function createScene(
@@ -28,7 +29,8 @@ export function createScene(
   aspectRatio: number,
   showLabels: boolean = true,
   showHeatPillars: boolean = true,
-  rackSlotStates?: Record<string, RackUSlotState>
+  rackSlotStates?: Record<string, RackUSlotState>,
+  blueprintConfig?: BlueprintOverlayConfig
 ): SceneContext {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x060913); // Deep slate background
@@ -51,6 +53,7 @@ export function createScene(
 
   // 3. Room Floor, Enclosure Walls & Heatmap Plane
   createRoomEnclosure(scene, room, simulationResult);
+  updateBlueprintOverlayTexture(scene, room, blueprintConfig);
 
   // 4. Dynamic Objects Group (racks and CRACs created strictly from Scenario)
   const dynamicObjectsGroup = new THREE.Group();
@@ -223,4 +226,127 @@ export function populateSceneMeshes(
     const cracMesh = createCracMesh(crac, scenario.room);
     group.add(cracMesh);
   });
+}
+
+/**
+ * Creates a canvas texture drawing clean 2D CAD architectural blueprint lines & grid for data center floor.
+ */
+function createProceduralBlueprintTexture(): THREE.CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1024;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    // White paper background
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Fine grid lines (0.6m tile representation)
+    ctx.strokeStyle = '#cbd5e1';
+    ctx.lineWidth = 1;
+    const step = 32;
+    for (let x = 0; x <= canvas.width; x += step) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, canvas.height);
+      ctx.stroke();
+    }
+    for (let y = 0; y <= canvas.height; y += step) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(canvas.width, y);
+      ctx.stroke();
+    }
+
+    // Wall perimeter
+    ctx.strokeStyle = '#0f172a';
+    ctx.lineWidth = 8;
+    ctx.strokeRect(16, 16, canvas.width - 32, canvas.height - 32);
+
+    // Architectural text watermark
+    ctx.fillStyle = '#1e293b';
+    ctx.font = 'bold 20px monospace';
+    ctx.fillText('대학원 전산실 Architectural CAD Blueprint Floorplan', 36, 48);
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.name = 'procedural_blueprint';
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
+
+/**
+ * Updates or creates the 3D floor blueprint texture overlay mesh (Y = floorY + 0.01).
+ */
+export function updateBlueprintOverlayTexture(
+  scene: THREE.Scene,
+  room: RoomDimensions,
+  blueprintConfig?: BlueprintOverlayConfig
+): void {
+  let blueprintMesh = scene.getObjectByName('blueprintOverlayMesh') as THREE.Mesh;
+  const { widthM, depthM, heightM } = room;
+  const floorY = -heightM / 2;
+
+  if (!blueprintConfig || !blueprintConfig.enabled) {
+    if (blueprintMesh) {
+      blueprintMesh.visible = false;
+    }
+    return;
+  }
+
+  const scale = blueprintConfig.scale || 1.0;
+  const planeWidth = widthM * scale;
+  const planeDepth = depthM * scale;
+
+  if (!blueprintMesh) {
+    const geo = new THREE.PlaneGeometry(1, 1);
+    const mat = new THREE.MeshBasicMaterial({
+      transparent: true,
+      opacity: blueprintConfig.opacity,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    });
+    blueprintMesh = new THREE.Mesh(geo, mat);
+    blueprintMesh.name = 'blueprintOverlayMesh';
+    blueprintMesh.rotation.x = -Math.PI / 2;
+    scene.add(blueprintMesh);
+  }
+
+  blueprintMesh.visible = true;
+  blueprintMesh.scale.set(planeWidth, planeDepth, 1);
+  blueprintMesh.position.set(
+    blueprintConfig.offsetXM || 0,
+    floorY + 0.01,
+    blueprintConfig.offsetYM || 0
+  );
+
+  const mat = blueprintMesh.material as THREE.MeshBasicMaterial;
+  mat.opacity = blueprintConfig.opacity;
+
+  if (blueprintConfig.imageUrl) {
+    const loader = new THREE.TextureLoader();
+    loader.load(
+      blueprintConfig.imageUrl,
+      (texture) => {
+        if (mat.map && mat.map.name !== 'procedural_blueprint') {
+          mat.map.dispose();
+        }
+        texture.colorSpace = THREE.SRGBColorSpace;
+        mat.map = texture;
+        mat.needsUpdate = true;
+      },
+      undefined,
+      () => {
+        if (!mat.map) {
+          mat.map = createProceduralBlueprintTexture();
+          mat.needsUpdate = true;
+        }
+      }
+    );
+  } else {
+    if (!mat.map) {
+      mat.map = createProceduralBlueprintTexture();
+      mat.needsUpdate = true;
+    }
+  }
 }

@@ -14,6 +14,7 @@ import { ServerRoom3D } from './three/ServerRoom3D';
 import { probeWebGPUAdapter, type WebGPUAdapterReport } from './three/webgpuAdapter';
 import { ArgonAnalysisPanel } from './components/ArgonAnalysisPanel';
 import { BlueprintOverlayControls } from './components/BlueprintOverlayControls';
+import { DigitalTwinInputConfigurator } from './components/DigitalTwinInputConfigurator';
 import { RackUSlotManager } from './components/RackUSlotManager';
 import { SlotOptimizationPanel } from './components/SlotOptimizationPanel';
 import {
@@ -83,14 +84,37 @@ export default function App() {
       });
   }, []);
 
+  // Custom Natural Language or Parameter-driven scenario
+  const [customScenario, setCustomScenario] = useState<Scenario | null>(null);
+
   // Build the domain scenario based on selected preset & custom room dimensions
   const scenario: Scenario = useMemo(() => {
+    if (customScenario) {
+      return customScenario;
+    }
     const baseScenario = createPresetScenario(selectedPreset);
     return {
       ...baseScenario,
       room: customRoom,
     };
-  }, [selectedPreset, customRoom]);
+  }, [selectedPreset, customRoom, customScenario]);
+
+  // Handle Preset change
+  const handleSelectPreset = (preset: PresetId) => {
+    setSelectedPreset(preset);
+    setCustomScenario(null);
+  };
+
+  // Handle Automated 3D Digital Twin Application
+  const handleApplyCustomTwin = (
+    newScenario: Scenario,
+    newRackSlotStates: Record<string, RackUSlotState>,
+    newCustomRoom: RoomDimensions
+  ) => {
+    setCustomScenario(newScenario);
+    setRackSlotStates(newRackSlotStates);
+    setCustomRoom(newCustomRoom);
+  };
 
   // Compute thermal results using pluggable thermalEngine
   const simulationResult: SimulationResult = useMemo(() => {
@@ -99,8 +123,10 @@ export default function App() {
 
   // Initialize or synchronize rack U-slot states when preset changes
   React.useEffect(() => {
-    setRackSlotStates(createDefaultRackSlotStates(scenario));
-  }, [selectedPreset, scenario]);
+    if (!customScenario) {
+      setRackSlotStates(createDefaultRackSlotStates(scenario));
+    }
+  }, [selectedPreset, scenario, customScenario]);
 
   // Capability 3: Compute vertical thermal physics & Argon slot optimization
   const slotOptimization = useMemo(() => {
@@ -231,11 +257,16 @@ export default function App() {
           <span>{MODEL_DISCLAIMER}</span>
         </div>
 
+        {/* Automated 3D Digital Twin & WebGPU Thermal Configurator (Natural Language & Parameters) */}
+        <section aria-label="자동 3D 디지털 트윈 설정">
+          <DigitalTwinInputConfigurator onApplyCustomTwin={handleApplyCustomTwin} />
+        </section>
+
         {/* Section 1: Preset Controls & 2D/3D View Switcher */}
         <section aria-label="시나리오 프리셋 제어">
           <ScenarioControls
             selectedPreset={selectedPreset}
-            onSelectPreset={setSelectedPreset}
+            onSelectPreset={handleSelectPreset}
             viewMode={viewMode}
             onViewModeChange={setViewMode}
           />
@@ -267,6 +298,7 @@ export default function App() {
               onAdapterReport={setAdapterReport}
               rackSlotStates={rackSlotStates}
               onUpdateRackSlotStates={setRackSlotStates}
+              blueprintConfig={blueprintConfig}
             />
           )}
         </section>

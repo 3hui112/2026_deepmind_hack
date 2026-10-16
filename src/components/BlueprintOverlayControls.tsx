@@ -19,19 +19,6 @@ interface BlueprintOverlayControlsProps {
   onUpdateConfig: (config: BlueprintOverlayConfig) => void;
 }
 
-export const BLUEPRINT_PRESETS = [
-  { id: 'bp-1', name: '01. Standard 24-Rack Hot/Cold Aisle', url: '/blueprints/blueprint-01-standard.png' },
-  { id: 'bp-2', name: '02. Hot Aisle Containment Pod', url: '/blueprints/blueprint-02-containment.png' },
-  { id: 'bp-3', name: '03. Perimeter Cooling 4-CRAC Room', url: '/blueprints/blueprint-03-perimeter-crac.png' },
-  { id: 'bp-4', name: '04. Modular 4-Pod GPU Cluster', url: '/blueprints/blueprint-04-pod-cluster.png' },
-  { id: 'bp-5', name: '05. Hyperscale 48-Rack Hall', url: '/blueprints/blueprint-05-hyperscale.png' },
-  { id: 'bp-6', name: '06. Micro Edge AI 8-Rack Room', url: '/blueprints/blueprint-06-edge-lab.png' },
-  { id: 'bp-7', name: '07. Liquid Cooling & Chilled Water CDI', url: '/blueprints/blueprint-07-liquid-cooling.png' },
-  { id: 'bp-8', name: '08. University AI Lab Mixed Layout', url: '/blueprints/blueprint-08-academic-gpu.png' },
-  { id: 'bp-9', name: '09. N+1 Dual Redundant CRAC & UPS', url: '/blueprints/blueprint-09-redundant-crac.png' },
-  { id: 'bp-10', name: '10. Pure Vector Technical CAD Blueprint', url: '/blueprints/blueprint-10-cad-blueprint.png' },
-];
-
 export const BlueprintOverlayControls: React.FC<BlueprintOverlayControlsProps> = ({
   room,
   onUpdateRoom,
@@ -58,14 +45,6 @@ export const BlueprintOverlayControls: React.FC<BlueprintOverlayControlsProps> =
     }
   };
 
-  const handlePresetSelect = (url: string) => {
-    onUpdateConfig({
-      ...config,
-      enabled: true,
-      imageUrl: url,
-    });
-  };
-
   return (
     <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-4 sm:p-5 text-slate-100 shadow-lg space-y-4">
       {/* Header */}
@@ -76,10 +55,10 @@ export const BlueprintOverlayControls: React.FC<BlueprintOverlayControlsProps> =
           </div>
           <div>
             <h2 className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
-              서버실 커스텀 규격 &amp; 도면 도면(Blueprint) 오버레이
+              서버실 커스텀 규격 &amp; 도면(Blueprint) 오버레이
             </h2>
             <p className="text-xs text-slate-400">
-              대학원 전산실/데이터센터 공간 규격(평/m) 및 CAD 레이아웃 오버레이 설정
+              대학원 전산실/데이터센터 공간 규격(평/m) 및 커스텀 CAD 레이아웃 오버레이 설정
             </p>
           </div>
         </div>
@@ -152,50 +131,46 @@ export const BlueprintOverlayControls: React.FC<BlueprintOverlayControlsProps> =
           </div>
         </div>
 
-        {/* Blueprint File Upload & Sample Presets */}
+        {/* Blueprint File Upload */}
         <div className="bg-slate-950/80 p-3 rounded-lg border border-slate-800 space-y-2">
           <div className="text-xs font-bold text-slate-300 flex items-center justify-between">
-            <span>CAD 도면 이미지 (10개 샘플/업로드)</span>
+            <span>CAD 도면 이미지 업로드</span>
             <span className="text-xs text-slate-400">PNG / JPG / SVG</span>
           </div>
-          <div className="space-y-1.5">
-            <select
-              value={BLUEPRINT_PRESETS.some((p) => p.url === config.imageUrl) ? config.imageUrl : ''}
-              onChange={(e) => handlePresetSelect(e.target.value)}
-              className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-sky-200 focus:ring-1 focus:ring-sky-500 font-mono"
+          <div className="space-y-2">
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold shadow transition-colors"
             >
-              <option value="">-- 샘플 CAD 도면 선택 (10종) --</option>
-              {BLUEPRINT_PRESETS.map((preset) => (
-                <option key={preset.id} value={preset.url}>
-                  {preset.name}
-                </option>
-              ))}
-            </select>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-lg bg-sky-900/60 hover:bg-sky-800/80 text-sky-200 text-xs font-semibold border border-sky-700 transition-colors"
-              >
-                <Upload className="w-3.5 h-3.5" />
-                커스텀 파일 업로드
-              </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/png, image/jpeg, image/svg+xml"
-                onChange={handleImageUpload}
-                className="hidden"
-              />
-              {config.imageUrl && (
+              <Upload className="w-4 h-4" />
+              사용자 도면 이미지 업로드
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/png, image/jpeg, image/svg+xml"
+              onChange={handleImageUpload}
+              className="hidden"
+            />
+            {config.imageUrl ? (
+              <div className="flex items-center justify-between bg-slate-900 p-1.5 rounded border border-slate-800 text-xs">
+                <span className="text-sky-300 font-mono truncate max-w-[150px]">
+                  ✓ 도면 적용됨
+                </span>
                 <button
                   onClick={() => onUpdateConfig({ ...config, imageUrl: '' })}
                   title="기본 CAD 벡터 도면으로 리셋"
-                  className="p-1 text-slate-400 hover:text-slate-200 bg-slate-800 rounded border border-slate-700"
+                  className="flex items-center gap-1 text-slate-400 hover:text-slate-200 px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-[11px]"
                 >
-                  <RotateCcw className="w-3.5 h-3.5" />
+                  <RotateCcw className="w-3 h-3" />
+                  초기화
                 </button>
-              )}
-            </div>
+              </div>
+            ) : (
+              <p className="text-[11px] text-slate-400">
+                업로드 시 3D 디지털 트윈 바닥에 도면이 반영됩니다.
+              </p>
+            )}
           </div>
         </div>
 
