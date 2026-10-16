@@ -1,16 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import type { Scenario, RackSpec } from '../domain/scenario';
-import type { SimulationResult, RackSimulationResult } from '../simulation/types';
-import { Wind, Info, AlertTriangle } from 'lucide-react';
+import type { SimulationResult } from '../simulation/types';
+import type { BlueprintOverlayConfig } from '../domain/rackSlots';
+import { Wind, Info, Move, RotateCw, CheckCircle, MapPin } from 'lucide-react';
 import { getThermalColorCss } from '../three/thermalTexture';
 
 interface Simulator2DProps {
   scenario: Scenario;
   result: SimulationResult;
+  blueprintConfig?: BlueprintOverlayConfig;
+  onUpdateRackPosition?: (rackId: string, newPosition: [number, number, number]) => void;
+  onRotateRack?: (rackId: string) => void;
 }
 
-export const Simulator2D: React.FC<Simulator2DProps> = ({ scenario, result }) => {
+export const Simulator2D: React.FC<Simulator2DProps> = ({
+  scenario,
+  result,
+  blueprintConfig,
+  onUpdateRackPosition,
+  onRotateRack,
+}) => {
   const [selectedRackId, setSelectedRackId] = useState<string | null>(null);
+  const [draggedRackId, setDraggingRackId] = useState<string | null>(null);
+  const [dragPos, setDragPos] = useState<{ x: number; z: number } | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const svgRef = useRef<SVGSVGElement | null>(null);
 
   const { room } = scenario;
   // SVG coordinates: map room width and depth to viewBox
@@ -22,6 +37,60 @@ export const Simulator2D: React.FC<Simulator2DProps> = ({ scenario, result }) =>
   // Temperature color mapper (unified with 3D)
   const getTempColor = (temp: number) => getThermalColorCss(temp);
 
+  // Convert SVG Mouse event to Room Meter coordinates [xMeters, zMeters]
+  const getRoomMetersFromSvgEvent = (e: React.MouseEvent<SVGSVGElement> | React.PointerEvent<SVGSVGElement>) => {
+    if (!svgRef.current) return { xMeters: 0, zMeters: 0 };
+    const rect = svgRef.current.getBoundingClientRect();
+    const clientX = e.clientX - rect.left;
+    const clientY = e.clientY - rect.top;
+
+    const svgX = (clientX / rect.width) * svgWidth;
+    const svgZ = (clientY / rect.height) * svgHeight;
+
+    // Convert to centered room coordinates [-widthM/2 .. widthM/2]
+    let xMeters = (svgX / scaleX) - room.widthM / 2;
+    let zMeters = (svgZ / scaleZ) - room.depthM / 2;
+
+    // Clamp inside room boundary
+    xMeters = Math.max(-room.widthM / 2 + 0.5, Math.min(room.widthM / 2 - 0.5, xMeters));
+    zMeters = Math.max(-room.depthM / 2 + 0.5, Math.min(room.depthM / 2 - 0.5, zMeters));
+
+    return {
+      xMeters: Number(xMeters.toFixed(2)),
+      zMeters: Number(zMeters.toFixed(2)),
+    };
+  };
+
+  // Handle Drag Start
+  const handlePointerDownRack = (e: React.PointerEvent, rackId: string) => {
+    e.stopPropagation();
+    setSelectedRackId(rackId);
+    setDraggingRackId(rackId);
+
+    const targetRack = scenario.racks.find((r) => r.id === rackId);
+    if (targetRack) {
+      setDragPos({ x: targetRack.position[0], z: targetRack.position[2] });
+    }
+  };
+
+  // Handle Drag Move
+  const handlePointerMoveCanvas = (e: React.PointerEvent<SVGSVGElement>) => {
+    if (!draggedRackId) return;
+    const { xMeters, zMeters } = getRoomMetersFromSvgEvent(e);
+    setDragPos({ x: xMeters, z: zMeters });
+  };
+
+  // Handle Drag End
+  const handlePointerUpCanvas = () => {
+    if (draggedRackId && dragPos) {
+      onUpdateRackPosition?.(draggedRackId, [dragPos.x, 0, dragPos.z]);
+      setToastMessage(`[${draggedRackId}] 도면 위치 좌표 [${dragPos.x}m, ${dragPos.z}m](으)로 이동 완료`);
+      setTimeout(() => setToastMessage(null), 3000);
+    }
+    setDraggingRackId(null);
+    setDragPos(null);
+  };
+
   const selectedRack = result.rackResults.find((r) => r.id === selectedRackId);
 
   return (
@@ -31,10 +100,10 @@ export const Simulator2D: React.FC<Simulator2DProps> = ({ scenario, result }) =>
         <div>
           <h2 className="text-base font-semibold text-slate-100 flex items-center gap-2">
             <Wind className="w-5 h-5 text-sky-400" />
-            2D 평면 기류 및 온도 분포 시뮬레이션
+            2D 도면 기반 서버랙 마우스 이동 &amp; 기류 열유동 시뮬레이션
           </h2>
           <p className="text-xs text-slate-400 mt-0.5">
-            룸 크기: {room.widthM}m × {room.depthM}m | 랙 24대 (각 5.0kW) | CRAC 공조기 4대
+            룸 크기: {room.widthM}m × {room.depthM}m | CAD 도면 오버레이 상에서 서버랙을 클릭·드래그하여 자유롭게 이동할 수 있습니다.
           </p>
         </div>
 
@@ -66,9 +135,20 @@ export const Simulator2D: React.FC<Simulator2DProps> = ({ scenario, result }) =>
 
       {/* Main Interactive SVG Canvas */}
       <div className="relative bg-slate-950 rounded-lg p-2 border border-slate-800 overflow-hidden">
+        {/* Toast Notification */}
+        {toastMessage && (
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 bg-emerald-950/95 text-emerald-200 border border-emerald-500/60 px-4 py-2 rounded-lg text-xs font-semibold shadow-2xl flex items-center gap-2 animate-bounce">
+            <CheckCircle className="w-4 h-4 text-emerald-400" />
+            <span>{toastMessage}</span>
+          </div>
+        )}
+
         <svg
+          ref={svgRef}
           viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-          className="w-full h-auto max-h-[520px] select-none"
+          onPointerMove={handlePointerMoveCanvas}
+          onPointerUp={handlePointerUpCanvas}
+          className="w-full h-auto max-h-[540px] select-none cursor-crosshair touch-none"
         >
           {/* Subtle Grid Lines */}
           <defs>
@@ -93,22 +173,33 @@ export const Simulator2D: React.FC<Simulator2DProps> = ({ scenario, result }) =>
           <rect width={svgWidth} height={svgHeight} fill="#090d16" />
           <rect width={svgWidth} height={svgHeight} fill="url(#grid-pattern)" opacity="0.6" />
 
+          {/* CAD Blueprint Floorplan Overlay Image (if enabled & present) */}
+          {blueprintConfig?.enabled && blueprintConfig.imageUrl && (
+            <image
+              href={blueprintConfig.imageUrl}
+              x={0}
+              y={0}
+              width={svgWidth}
+              height={svgHeight}
+              opacity={blueprintConfig.opacity}
+              preserveAspectRatio="none"
+            />
+          )}
+
           {/* Aisle Indicators */}
           {scenario.selectedPreset === 'A' ? (
-            // Preset A has no dedicated cold aisle
             <g opacity="0.4">
-              <text x={svgWidth / 2} y={scaleZ * 5.0} fill="#94a3b8" fontSize="13" textAnchor="middle" fontStyle="italic">
+              <text x={svgWidth / 2} y={svgHeight * 0.5} fill="#94a3b8" fontSize="13" textAnchor="middle" fontStyle="italic">
                 (동일 방향 단일 기류 흐름 - 후면 배기 혼입 구역)
               </text>
             </g>
           ) : (
-            // Preset B and C have Cold Aisle in middle (z: 3.8m to 6.2m)
             <g>
               <rect
-                x={scaleX * 1.0}
-                y={scaleZ * 4.4}
-                width={scaleX * 12.0}
-                height={scaleZ * 1.2}
+                x={svgWidth * 0.1}
+                y={svgHeight * 0.42}
+                width={svgWidth * 0.8}
+                height={svgHeight * 0.16}
                 fill="#0284c7"
                 fillOpacity="0.12"
                 stroke="#0284c7"
@@ -118,7 +209,7 @@ export const Simulator2D: React.FC<Simulator2DProps> = ({ scenario, result }) =>
               />
               <text
                 x={svgWidth / 2}
-                y={scaleZ * 5.05}
+                y={svgHeight * 0.505}
                 fill="#38bdf8"
                 fontSize="12"
                 fontWeight="600"
@@ -132,11 +223,11 @@ export const Simulator2D: React.FC<Simulator2DProps> = ({ scenario, result }) =>
 
           {/* CRAC Units */}
           {result.cracResults.map((crac) => {
-            const cx = crac.position[0] * scaleX;
-            const cz = crac.position[2] * scaleZ;
+            const cx = (crac.position[0] + room.widthM / 2) * scaleX;
+            const cz = (crac.position[2] + room.depthM / 2) * scaleZ;
             const cracW = 1.4 * scaleX;
             const cracH = 0.8 * scaleZ;
-            const isTop = crac.position[2] < 5.0;
+            const isTop = crac.position[2] < 0;
 
             return (
               <g
@@ -194,8 +285,12 @@ export const Simulator2D: React.FC<Simulator2DProps> = ({ scenario, result }) =>
 
           {/* Server Racks */}
           {result.rackResults.map((rack) => {
-            const rx = rack.position[0] * scaleX;
-            const rz = rack.position[2] * scaleZ;
+            const isBeingDragged = draggedRackId === rack.id;
+            const currentX = isBeingDragged && dragPos ? dragPos.x : rack.position[0];
+            const currentZ = isBeingDragged && dragPos ? dragPos.z : rack.position[2];
+
+            const rx = (currentX + room.widthM / 2) * scaleX;
+            const rz = (currentZ + room.depthM / 2) * scaleZ;
             const rackW = 0.8 * scaleX;
             const rackD = 1.0 * scaleZ;
             const isOverheated = rack.intakeTempC > 27.0;
@@ -207,21 +302,37 @@ export const Simulator2D: React.FC<Simulator2DProps> = ({ scenario, result }) =>
               <g
                 key={rack.id}
                 transform={`translate(${rx - rackW / 2}, ${rz - rackD / 2})`}
-                onClick={() => setSelectedRackId(rack.id)}
-                className="cursor-pointer group"
+                onPointerDown={(e) => handlePointerDownRack(e, rack.id)}
+                className="cursor-grab active:cursor-grabbing group"
               >
+                {/* Yellow Dragging Highlight Shadow */}
+                {isBeingDragged && (
+                  <rect
+                    x="-4"
+                    y="-4"
+                    width={rackW + 8}
+                    height={rackD + 8}
+                    rx="6"
+                    fill="none"
+                    stroke="#eab308"
+                    strokeWidth="2.5"
+                    strokeDasharray="4,4"
+                    className="animate-pulse"
+                  />
+                )}
+
                 {/* Rack Outline Body */}
                 <rect
                   width={rackW}
                   height={rackD}
                   rx="3"
                   fill="#0f172a"
-                  stroke={isSelected ? '#38bdf8' : tempColor}
-                  strokeWidth={isSelected ? '2.5' : isOverheated ? '2' : '1.2'}
+                  stroke={isBeingDragged ? '#eab308' : isSelected ? '#38bdf8' : tempColor}
+                  strokeWidth={isSelected || isBeingDragged ? '2.5' : isOverheated ? '2' : '1.2'}
                   className="transition-colors"
                 />
 
-                {/* Front Intake Face Indicator (Green/Temp line) */}
+                {/* Front Intake Face Indicator */}
                 <rect
                   x="2"
                   y={isFacingSouth ? rackD - 4 : 1}
@@ -231,7 +342,7 @@ export const Simulator2D: React.FC<Simulator2DProps> = ({ scenario, result }) =>
                   rx="1"
                 />
 
-                {/* Hot Exhaust marker on rear */}
+                {/* Hot Exhaust Marker */}
                 <rect
                   x="2"
                   y={isFacingSouth ? 1 : rackD - 4}
@@ -240,6 +351,11 @@ export const Simulator2D: React.FC<Simulator2DProps> = ({ scenario, result }) =>
                   fill="#f43f5e"
                   opacity="0.7"
                 />
+
+                {/* Move Icon Badge */}
+                <g transform={`translate(${rackW / 2 - 6}, 3)`} opacity="0.6">
+                  <path d="M 6 0 L 6 12 M 0 6 L 12 6" stroke="#ffffff" strokeWidth="1" />
+                </g>
 
                 {/* Rack Label */}
                 <text
@@ -281,20 +397,24 @@ export const Simulator2D: React.FC<Simulator2DProps> = ({ scenario, result }) =>
           })}
         </svg>
 
-        {/* Selected Rack Info Floating Card */}
+        {/* Selected Rack Info & Move Controls Floating Card */}
         {selectedRack && (
-          <div className="absolute bottom-4 left-4 bg-slate-900/95 backdrop-blur border border-sky-500/50 rounded-lg p-3 text-xs shadow-xl min-w-[220px]">
+          <div className="absolute bottom-4 left-4 bg-slate-900/95 backdrop-blur border border-sky-500/50 rounded-lg p-3.5 text-xs shadow-2xl min-w-[260px] space-y-2.5 z-10">
             <div className="flex items-center justify-between pb-1.5 border-b border-slate-800">
-              <span className="font-bold font-mono text-sky-400">{selectedRack.id}</span>
+              <span className="font-bold font-mono text-sky-400 flex items-center gap-1.5">
+                <Move className="w-4 h-4 text-amber-400" />
+                {selectedRack.id}
+              </span>
               <button
                 type="button"
                 onClick={() => setSelectedRackId(null)}
-                className="text-slate-500 hover:text-slate-300 px-1"
+                className="text-slate-500 hover:text-slate-300 px-1 font-bold"
               >
                 ✕
               </button>
             </div>
-            <div className="mt-2 space-y-1 font-mono text-slate-300 text-[11px]">
+
+            <div className="space-y-1 font-mono text-slate-300 text-[11px]">
               <div className="flex justify-between">
                 <span className="text-slate-400">흡입구 온도:</span>
                 <span
@@ -310,13 +430,26 @@ export const Simulator2D: React.FC<Simulator2DProps> = ({ scenario, result }) =>
                 <span>{selectedRack.heatKw.toFixed(1)} kW</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">위치 좌표:</span>
-                <span>[{selectedRack.position[0]}m, {selectedRack.position[2]}m]</span>
+                <span className="text-slate-400">도면 실시간 좌표:</span>
+                <span className="text-amber-300 font-bold">
+                  [{dragPos && draggedRackId === selectedRack.id ? dragPos.x : selectedRack.position[0]}m,{' '}
+                  {dragPos && draggedRackId === selectedRack.id ? dragPos.z : selectedRack.position[2]}m]
+                </span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">배치 방향:</span>
-                <span>{selectedRack.rotationY === 0 ? '남향 (0°)' : '북향 (180°)'}</span>
-              </div>
+            </div>
+
+            {/* Quick Actions: Rotate Rack & Fine Move */}
+            <div className="flex gap-2 pt-1 border-t border-slate-800">
+              {onRotateRack && (
+                <button
+                  type="button"
+                  onClick={() => onRotateRack(selectedRack.id)}
+                  className="flex-1 py-1.5 bg-slate-800 hover:bg-slate-700 text-sky-300 text-[11px] font-semibold rounded-md border border-slate-700 flex items-center justify-center gap-1 transition-all"
+                >
+                  <RotateCw className="w-3.5 h-3.5" />
+                  방향 회전
+                </button>
+              )}
             </div>
           </div>
         )}
@@ -326,7 +459,7 @@ export const Simulator2D: React.FC<Simulator2DProps> = ({ scenario, result }) =>
       <div className="flex items-center gap-2 text-xs text-slate-400 bg-slate-950/60 p-2.5 rounded-lg border border-slate-800/80">
         <Info className="w-4 h-4 text-sky-400 shrink-0" />
         <span>
-          각 랙을 클릭하여 세부 흡입 온도와 좌표를 확인하세요. 랙 전면(두꺼운 색상 바)이 흡입면이며, 후면(붉은 점선)이 배기면입니다.
+          도면 상의 서버랙을 <b>마우스로 드래그 앤 드롭</b>하여 다른 좌표 위치로 자유롭게 이동하세요. 위치 이동 시 WebGPU 기류 및 열유동 시뮬레이션이 즉시 실시간 재계산됩니다.
         </span>
       </div>
     </div>

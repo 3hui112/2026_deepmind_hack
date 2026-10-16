@@ -47,6 +47,8 @@ interface ServerRoom3DProps {
   rackSlotStates?: Record<string, RackUSlotState>;
   onUpdateRackSlotStates?: (newStates: Record<string, RackUSlotState>) => void;
   blueprintConfig?: BlueprintOverlayConfig;
+  onUpdateRackPosition?: (rackId: string, newPosition: [number, number, number]) => void;
+  onRotateRack?: (rackId: string) => void;
 }
 
 type RendererStatus = 'initializing' | 'webgpu' | 'webgl_fallback' | 'software_3d';
@@ -82,6 +84,8 @@ export const ServerRoom3D: React.FC<ServerRoom3DProps> = ({
   rackSlotStates,
   onUpdateRackSlotStates,
   blueprintConfig,
+  onUpdateRackPosition,
+  onRotateRack,
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const [rendererStatus, setRendererStatus] = useState<RendererStatus>('initializing');

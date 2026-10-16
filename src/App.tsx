@@ -116,6 +116,26 @@ export default function App() {
     setCustomRoom(newCustomRoom);
   };
 
+  // Handle moving a server rack directly on the blueprint floorplan
+  const handleUpdateRackPosition = (rackId: string, newPos: [number, number, number]) => {
+    const updatedRacks = scenario.racks.map((r) =>
+      r.id === rackId ? { ...r, position: newPos } : r
+    );
+    setCustomScenario({ ...scenario, racks: updatedRacks });
+  };
+
+  // Handle rotating a server rack orientation (0 deg vs 180 deg)
+  const handleRotateRack = (rackId: string) => {
+    const updatedRacks = scenario.racks.map((r) => {
+      if (r.id === rackId) {
+        const nextRotation = r.rotationY === 0 ? Math.PI : 0;
+        return { ...r, rotationY: nextRotation };
+      }
+      return r;
+    });
+    setCustomScenario({ ...scenario, racks: updatedRacks });
+  };
+
   // Compute thermal results using pluggable thermalEngine
   const simulationResult: SimulationResult = useMemo(() => {
     return calculateThermalField(scenario);
@@ -290,7 +310,13 @@ export default function App() {
         {/* Section 3: 2D or 3D Simulation Viewport */}
         <section aria-label="시뮬레이션 영역">
           {viewMode === '2D' ? (
-            <Simulator2D scenario={scenario} result={simulationResult} />
+            <Simulator2D
+              scenario={scenario}
+              result={simulationResult}
+              blueprintConfig={blueprintConfig}
+              onUpdateRackPosition={handleUpdateRackPosition}
+              onRotateRack={handleRotateRack}
+            />
           ) : (
             <ServerRoom3D
               scenario={scenario}
@@ -299,6 +325,8 @@ export default function App() {
               rackSlotStates={rackSlotStates}
               onUpdateRackSlotStates={setRackSlotStates}
               blueprintConfig={blueprintConfig}
+              onUpdateRackPosition={handleUpdateRackPosition}
+              onRotateRack={handleRotateRack}
             />
           )}
         </section>
